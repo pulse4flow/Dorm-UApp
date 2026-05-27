@@ -1,0 +1,2 @@
+nest-build: build
+  npx prisma migrate deploy
