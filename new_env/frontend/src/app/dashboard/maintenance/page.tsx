@@ -9,6 +9,15 @@ import {
 import { RequestCard } from "@/components/RequestCard";
 import { BroadcastBox, Broadcast } from "@/components/BroadcastBox";
 import { AdminBroadcastForm } from "@/components/AdminBroadcastForm";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function MaintenancePage() {
   const [isAdmin, setIsAdmin] = useState(false);
@@ -125,24 +134,17 @@ export default function MaintenancePage() {
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <button
+            <Button
               onClick={() => setIsAdmin(!isAdmin)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-lg transition-colors ${
-                isAdmin
-                  ? "bg-primary text-primary-foreground hover:bg-primary/90"
-                  : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
-              }`}
+              variant={isAdmin ? "default" : "secondary"}
             >
               <Shield className="w-4 h-4" />
               {isAdmin ? "Admin Mode" : "Resident Mode"}
-            </button>
-            <button
-              onClick={() => setShowForm(true)}
-              className="flex items-center gap-2 px-5 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
-            >
+            </Button>
+            <Button onClick={() => setShowForm(true)}>
               <Plus className="w-5 h-5" />
               New Request
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -189,38 +191,39 @@ export default function MaintenancePage() {
         <div className="flex flex-col sm:flex-row gap-3 mb-6">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-            <input
-              type="text"
+            <Input
               placeholder="Search by room number or description..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2.5 bg-input-background rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-ring"
+              className="pl-10"
             />
           </div>
-          <select
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-            className="px-4 py-2.5 bg-input-background rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-ring"
-          >
-            <option value="all">All Status</option>
-            <option value="pending">Pending</option>
-            <option value="in-progress">In Progress</option>
-            <option value="resolved">Resolved</option>
-          </select>
-          <select
-            value={filterCategory}
-            onChange={(e) => setFilterCategory(e.target.value)}
-            className="px-4 py-2.5 bg-input-background rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-ring"
-          >
-            <option value="all">All Categories</option>
-            <option value="plumbing">Plumbing</option>
-            <option value="electrical">Electrical</option>
-            <option value="furniture">Furniture</option>
-            <option value="hvac">HVAC</option>
-            <option value="cleaning">Cleaning</option>
-            <option value="security">Security</option>
-            <option value="other">Other</option>
-          </select>
+          <Select value={filterStatus} onValueChange={setFilterStatus}>
+            <SelectTrigger className="w-full sm:w-40">
+              <SelectValue placeholder="All Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Status</SelectItem>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="in-progress">In Progress</SelectItem>
+              <SelectItem value="resolved">Resolved</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={filterCategory} onValueChange={setFilterCategory}>
+            <SelectTrigger className="w-full sm:w-44">
+              <SelectValue placeholder="All Categories" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Categories</SelectItem>
+              <SelectItem value="plumbing">Plumbing</SelectItem>
+              <SelectItem value="electrical">Electrical</SelectItem>
+              <SelectItem value="furniture">Furniture</SelectItem>
+              <SelectItem value="hvac">HVAC</SelectItem>
+              <SelectItem value="cleaning">Cleaning</SelectItem>
+              <SelectItem value="security">Security</SelectItem>
+              <SelectItem value="other">Other</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 

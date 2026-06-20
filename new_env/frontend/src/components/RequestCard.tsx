@@ -2,19 +2,30 @@
 
 import { MaintenanceRequest } from "./RequestForm";
 import { Calendar, MapPin, AlertTriangle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface RequestCardProps {
   request: MaintenanceRequest;
   onStatusChange: (id: string, status: MaintenanceRequest["status"]) => void;
 }
 
-const statusColors: Record<string, string> = {
-  pending:
-    "bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border-yellow-500/20",
-  "in-progress":
-    "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20",
-  resolved:
-    "bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20",
+const statusVariant: Record<string, "default" | "secondary" | "outline"> = {
+  pending: "secondary",
+  "in-progress": "default",
+  resolved: "outline",
+};
+
+const statusLabel: Record<string, string> = {
+  pending: "Pending",
+  "in-progress": "In Progress",
+  resolved: "Resolved",
 };
 
 const priorityColors: Record<string, string> = {
@@ -25,13 +36,13 @@ const priorityColors: Record<string, string> = {
 };
 
 const categoryIcons: Record<string, string> = {
-  plumbing: "\uD83D\uDEB0",
-  electrical: "\u26A1",
-  furniture: "\uD83E\uDEF1",
-  hvac: "\u2744\uFE0F",
-  cleaning: "\uD83E\uDDF9",
-  security: "\uD83D\uDD12",
-  other: "\uD83D\uDCDD",
+  plumbing: "🚿",
+  electrical: "⚡",
+  furniture: "🪑",
+  hvac: "❄️",
+  cleaning: "🧹",
+  security: "🔒",
+  other: "📝",
 };
 
 export function RequestCard({ request, onStatusChange }: RequestCardProps) {
@@ -59,14 +70,9 @@ export function RequestCard({ request, onStatusChange }: RequestCardProps) {
             </div>
           </div>
         </div>
-        <span
-          className={`px-3 py-1 rounded-full text-sm border ${statusColors[request.status]}`}
-        >
-          {request.status === "in-progress"
-            ? "In Progress"
-            : request.status.charAt(0).toUpperCase() +
-              request.status.slice(1)}
-        </span>
+        <Badge variant={statusVariant[request.status]}>
+          {statusLabel[request.status]}
+        </Badge>
       </div>
 
       <p className="text-foreground/90 mb-4">{request.description}</p>
@@ -94,20 +100,21 @@ export function RequestCard({ request, onStatusChange }: RequestCardProps) {
         </div>
 
         {request.status !== "resolved" && (
-          <select
+          <Select
             value={request.status}
-            onChange={(e) =>
-              onStatusChange(
-                request.id,
-                e.target.value as MaintenanceRequest["status"]
-              )
+            onValueChange={(value) =>
+              onStatusChange(request.id, value as MaintenanceRequest["status"])
             }
-            className="px-3 py-1.5 text-sm bg-input-background border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
           >
-            <option value="pending">Pending</option>
-            <option value="in-progress">In Progress</option>
-            <option value="resolved">Resolved</option>
-          </select>
+            <SelectTrigger className="w-32 h-8 text-xs">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="in-progress">In Progress</SelectItem>
+              <SelectItem value="resolved">Resolved</SelectItem>
+            </SelectContent>
+          </Select>
         )}
       </div>
     </div>

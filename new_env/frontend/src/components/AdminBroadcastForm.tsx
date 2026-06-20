@@ -5,6 +5,18 @@ import { useForm } from "react-hook-form";
 import { Megaphone, Send, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Broadcast } from "./BroadcastBox";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface AdminBroadcastFormProps {
   onBroadcast: (broadcast: Omit<Broadcast, "id" | "createdAt">) => void;
@@ -22,6 +34,8 @@ export function AdminBroadcastForm({ onBroadcast }: AdminBroadcastFormProps) {
     handleSubmit,
     formState: { errors },
     reset,
+    setValue,
+    watch,
   } = useForm<FormData>({
     defaultValues: {
       type: "info",
@@ -54,86 +68,82 @@ export function AdminBroadcastForm({ onBroadcast }: AdminBroadcastFormProps) {
   }
 
   return (
-    <div className="bg-card border border-border rounded-lg p-5">
-      <div className="flex items-center gap-2 mb-4">
-        <Megaphone className="w-5 h-5 text-primary" />
-        <h3 className="text-primary">Admin Broadcast</h3>
-      </div>
-
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div>
-          <label htmlFor="broadcast-title" className="block mb-2">
-            Title
-          </label>
-          <input
-            id="broadcast-title"
-            type="text"
-            {...register("title", { required: "Title is required" })}
-            className="w-full px-4 py-2.5 bg-input-background rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-ring"
-            placeholder="e.g., Scheduled Maintenance"
-          />
-          {errors.title && (
-            <div className="flex items-center gap-1 mt-1.5 text-destructive">
-              <AlertCircle className="w-4 h-4" />
-              <span className="text-sm">{errors.title.message}</span>
-            </div>
-          )}
+    <Card>
+      <CardContent className="p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <Megaphone className="w-5 h-5 text-primary" />
+          <h3 className="text-primary">Admin Broadcast</h3>
         </div>
 
-        <div>
-          <label htmlFor="broadcast-message" className="block mb-2">
-            Message
-          </label>
-          <textarea
-            id="broadcast-message"
-            {...register("message", { required: "Message is required" })}
-            rows={3}
-            className="w-full px-4 py-2.5 bg-input-background rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-ring resize-none"
-            placeholder="Enter your announcement message..."
-          />
-          {errors.message && (
-            <div className="flex items-center gap-1 mt-1.5 text-destructive">
-              <AlertCircle className="w-4 h-4" />
-              <span className="text-sm">{errors.message.message}</span>
-            </div>
-          )}
-        </div>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="broadcast-title">Title</Label>
+            <Input
+              id="broadcast-title"
+              type="text"
+              {...register("title", { required: "Title is required" })}
+              placeholder="e.g., Scheduled Maintenance"
+            />
+            {errors.title && (
+              <div className="flex items-center gap-1 text-destructive">
+                <AlertCircle className="w-4 h-4" />
+                <span className="text-sm">{errors.title.message}</span>
+              </div>
+            )}
+          </div>
 
-        <div>
-          <label htmlFor="broadcast-type" className="block mb-2">
-            Type
-          </label>
-          <select
-            id="broadcast-type"
-            {...register("type")}
-            className="w-full px-4 py-2.5 bg-input-background rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-ring"
-          >
-            <option value="info">Info - General announcement</option>
-            <option value="warning">Warning - Important notice</option>
-            <option value="urgent">Urgent - Critical alert</option>
-          </select>
-        </div>
+          <div className="space-y-2">
+            <Label htmlFor="broadcast-message">Message</Label>
+            <Textarea
+              id="broadcast-message"
+              {...register("message", { required: "Message is required" })}
+              rows={3}
+              placeholder="Enter your announcement message..."
+            />
+            {errors.message && (
+              <div className="flex items-center gap-1 text-destructive">
+                <AlertCircle className="w-4 h-4" />
+                <span className="text-sm">{errors.message.message}</span>
+              </div>
+            )}
+          </div>
 
-        <div className="flex gap-3 pt-2">
-          <button
-            type="button"
-            onClick={() => {
-              setIsExpanded(false);
-              reset();
-            }}
-            className="flex-1 px-4 py-2.5 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
-          >
-            <Send className="w-4 h-4" />
-            Send Broadcast
-          </button>
-        </div>
-      </form>
-    </div>
+          <div className="space-y-2">
+            <Label htmlFor="broadcast-type">Type</Label>
+            <Select
+              value={watch("type")}
+              onValueChange={(value) => setValue("type", value as "info" | "warning" | "urgent")}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="info">Info - General announcement</SelectItem>
+                <SelectItem value="warning">Warning - Important notice</SelectItem>
+                <SelectItem value="urgent">Urgent - Critical alert</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex gap-3 pt-2">
+            <Button
+              type="button"
+              variant="secondary"
+              className="flex-1"
+              onClick={() => {
+                setIsExpanded(false);
+                reset();
+              }}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" className="flex-1">
+              <Send className="w-4 h-4" />
+              Send Broadcast
+            </Button>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
   );
 }
