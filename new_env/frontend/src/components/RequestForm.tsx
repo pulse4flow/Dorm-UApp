@@ -4,6 +4,23 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { X, Upload, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export interface MaintenanceRequest {
   id: string;
@@ -35,6 +52,8 @@ export function RequestForm({ onSubmit, onClose }: RequestFormProps) {
     register,
     handleSubmit,
     formState: { errors },
+    setValue,
+    watch,
   } = useForm<FormData>();
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
@@ -63,174 +82,153 @@ export function RequestForm({ onSubmit, onClose }: RequestFormProps) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-background rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2>Submit Maintenance Request</h2>
-            <button
-              onClick={onClose}
-              className="p-2 hover:bg-muted rounded-md transition-colors"
-            >
-              <X className="w-5 h-5" />
-            </button>
+    <Dialog open onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Submit Maintenance Request</DialogTitle>
+        </DialogHeader>
+
+        <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-5">
+          <div className="space-y-2">
+            <Label htmlFor="roomNumber">Room Number</Label>
+            <Input
+              id="roomNumber"
+              type="text"
+              {...register("roomNumber", {
+                required: "Room number is required",
+              })}
+              placeholder="e.g., A-204"
+            />
+            {errors.roomNumber && (
+              <div className="flex items-center gap-1 text-destructive">
+                <AlertCircle className="w-4 h-4" />
+                <span className="text-sm">
+                  {errors.roomNumber.message}
+                </span>
+              </div>
+            )}
           </div>
 
-          <form onSubmit={handleSubmit(onFormSubmit)} className="space-y-5">
-            <div>
-              <label htmlFor="roomNumber" className="block mb-2">
-                Room Number
+          <div className="space-y-2">
+            <Label htmlFor="category">Category</Label>
+            <Select
+              value={watch("category")}
+              onValueChange={(value) => setValue("category", value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select a category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="plumbing">Plumbing</SelectItem>
+                <SelectItem value="electrical">Electrical</SelectItem>
+                <SelectItem value="furniture">Furniture</SelectItem>
+                <SelectItem value="hvac">HVAC</SelectItem>
+                <SelectItem value="cleaning">Cleaning</SelectItem>
+                <SelectItem value="security">Security</SelectItem>
+                <SelectItem value="other">Other</SelectItem>
+              </SelectContent>
+            </Select>
+            <input type="hidden" {...register("category", { required: "Category is required" })} />
+            {errors.category && (
+              <div className="flex items-center gap-1 text-destructive">
+                <AlertCircle className="w-4 h-4" />
+                <span className="text-sm">
+                  {errors.category.message}
+                </span>
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="priority">Priority</Label>
+            <Select
+              value={watch("priority")}
+              onValueChange={(value) => setValue("priority", value)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select priority level" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="low">Low - Can wait a few days</SelectItem>
+                <SelectItem value="medium">Medium - Needs attention soon</SelectItem>
+                <SelectItem value="high">High - Needs urgent attention</SelectItem>
+                <SelectItem value="urgent">Urgent - Immediate safety concern</SelectItem>
+              </SelectContent>
+            </Select>
+            <input type="hidden" {...register("priority", { required: "Priority is required" })} />
+            {errors.priority && (
+              <div className="flex items-center gap-1 text-destructive">
+                <AlertCircle className="w-4 h-4" />
+                <span className="text-sm">
+                  {errors.priority.message}
+                </span>
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="description">Description</Label>
+            <Textarea
+              id="description"
+              {...register("description", {
+                required: "Description is required",
+              })}
+              rows={4}
+              placeholder="Describe the issue in detail..."
+            />
+            {errors.description && (
+              <div className="flex items-center gap-1 text-destructive">
+                <AlertCircle className="w-4 h-4" />
+                <span className="text-sm">
+                  {errors.description.message}
+                </span>
+              </div>
+            )}
+          </div>
+
+          <div>
+            <Label className="mb-2 block">Photo (Optional)</Label>
+            {!imagePreview ? (
+              <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
+                <Upload className="w-8 h-8 text-muted-foreground mb-2" />
+                <span className="text-sm text-muted-foreground">
+                  Click to upload image
+                </span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  className="hidden"
+                />
               </label>
-              <input
-                id="roomNumber"
-                type="text"
-                {...register("roomNumber", {
-                  required: "Room number is required",
-                })}
-                className="w-full px-4 py-2.5 bg-input-background rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-ring"
-                placeholder="e.g., A-204"
-              />
-              {errors.roomNumber && (
-                <div className="flex items-center gap-1 mt-1.5 text-destructive">
-                  <AlertCircle className="w-4 h-4" />
-                  <span className="text-sm">
-                    {errors.roomNumber.message}
-                  </span>
-                </div>
-              )}
-            </div>
+            ) : (
+              <div className="relative">
+                <img
+                  src={imagePreview}
+                  alt="Preview"
+                  className="w-full h-48 object-cover rounded-lg"
+                />
+                <button
+                  type="button"
+                  onClick={removeImage}
+                  className="absolute top-2 right-2 p-1.5 bg-background/90 rounded-full hover:bg-background transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+          </div>
 
-            <div>
-              <label htmlFor="category" className="block mb-2">
-                Category
-              </label>
-              <select
-                id="category"
-                {...register("category", {
-                  required: "Category is required",
-                })}
-                className="w-full px-4 py-2.5 bg-input-background rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-ring"
-              >
-                <option value="">Select a category</option>
-                <option value="plumbing">Plumbing</option>
-                <option value="electrical">Electrical</option>
-                <option value="furniture">Furniture</option>
-                <option value="hvac">HVAC</option>
-                <option value="cleaning">Cleaning</option>
-                <option value="security">Security</option>
-                <option value="other">Other</option>
-              </select>
-              {errors.category && (
-                <div className="flex items-center gap-1 mt-1.5 text-destructive">
-                  <AlertCircle className="w-4 h-4" />
-                  <span className="text-sm">
-                    {errors.category.message}
-                  </span>
-                </div>
-              )}
-            </div>
-
-            <div>
-              <label htmlFor="priority" className="block mb-2">
-                Priority
-              </label>
-              <select
-                id="priority"
-                {...register("priority", {
-                  required: "Priority is required",
-                })}
-                className="w-full px-4 py-2.5 bg-input-background rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-ring"
-              >
-                <option value="">Select priority level</option>
-                <option value="low">Low - Can wait a few days</option>
-                <option value="medium">Medium - Needs attention soon</option>
-                <option value="high">High - Needs urgent attention</option>
-                <option value="urgent">Urgent - Immediate safety concern</option>
-              </select>
-              {errors.priority && (
-                <div className="flex items-center gap-1 mt-1.5 text-destructive">
-                  <AlertCircle className="w-4 h-4" />
-                  <span className="text-sm">
-                    {errors.priority.message}
-                  </span>
-                </div>
-              )}
-            </div>
-
-            <div>
-              <label htmlFor="description" className="block mb-2">
-                Description
-              </label>
-              <textarea
-                id="description"
-                {...register("description", {
-                  required: "Description is required",
-                })}
-                rows={4}
-                className="w-full px-4 py-2.5 bg-input-background rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-ring resize-none"
-                placeholder="Describe the issue in detail..."
-              />
-              {errors.description && (
-                <div className="flex items-center gap-1 mt-1.5 text-destructive">
-                  <AlertCircle className="w-4 h-4" />
-                  <span className="text-sm">
-                    {errors.description.message}
-                  </span>
-                </div>
-              )}
-            </div>
-
-            <div>
-              <label className="block mb-2">Photo (Optional)</label>
-              {!imagePreview ? (
-                <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-border rounded-lg cursor-pointer hover:bg-muted/50 transition-colors">
-                  <Upload className="w-8 h-8 text-muted-foreground mb-2" />
-                  <span className="text-sm text-muted-foreground">
-                    Click to upload image
-                  </span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageUpload}
-                    className="hidden"
-                  />
-                </label>
-              ) : (
-                <div className="relative">
-                  <img
-                    src={imagePreview}
-                    alt="Preview"
-                    className="w-full h-48 object-cover rounded-lg"
-                  />
-                  <button
-                    type="button"
-                    onClick={removeImage}
-                    className="absolute top-2 right-2 p-1.5 bg-background/90 rounded-full hover:bg-background transition-colors"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-              )}
-            </div>
-
-            <div className="flex gap-3 pt-4">
-              <button
-                type="button"
-                onClick={onClose}
-                className="flex-1 px-4 py-2.5 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                className="flex-1 px-4 py-2.5 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
-              >
-                Submit Request
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
+          <div className="flex gap-3 pt-4">
+            <Button type="button" variant="secondary" className="flex-1" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button type="submit" className="flex-1">
+              Submit Request
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }

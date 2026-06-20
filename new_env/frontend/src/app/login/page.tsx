@@ -6,6 +6,10 @@ import { useForm } from "react-hook-form";
 import { LogIn, AlertCircle, Building2 } from "lucide-react";
 import { toast } from "sonner";
 import { Toaster } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface LoginForm {
   studentId: string;
@@ -55,70 +59,67 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <div className="bg-card border border-border rounded-xl p-8 shadow-lg">
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-            <div>
-              <label htmlFor="studentId" className="block mb-2">
-                Student ID
-              </label>
-              <input
-                id="studentId"
-                type="text"
-                {...register("studentId", {
-                  required: "Student ID is required",
-                })}
-                className="w-full px-4 py-2.5 bg-input-background rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-ring"
-                placeholder="Enter your student ID"
+        <Card className="shadow-lg">
+          <CardContent className="p-8">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+              <div className="space-y-2">
+                <Label htmlFor="studentId">Student ID</Label>
+                <Input
+                  id="studentId"
+                  type="text"
+                  {...register("studentId", {
+                    required: "Student ID is required",
+                  })}
+                  placeholder="Enter your student ID"
+                  disabled={isLoading}
+                />
+                {errors.studentId && (
+                  <div className="flex items-center gap-1 text-destructive">
+                    <AlertCircle className="w-4 h-4" />
+                    <span className="text-sm">
+                      {errors.studentId.message}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  {...register("password", {
+                    required: "Password is required",
+                  })}
+                  placeholder="Enter your password"
+                  disabled={isLoading}
+                />
+                {errors.password && (
+                  <div className="flex items-center gap-1 text-destructive">
+                    <AlertCircle className="w-4 h-4" />
+                    <span className="text-sm">
+                      {errors.password.message}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              <Button
+                type="submit"
                 disabled={isLoading}
-              />
-              {errors.studentId && (
-                <div className="flex items-center gap-1 mt-1.5 text-destructive">
-                  <AlertCircle className="w-4 h-4" />
-                  <span className="text-sm">
-                    {errors.studentId.message}
-                  </span>
-                </div>
-              )}
+                className="w-full"
+                size="lg"
+              >
+                <LogIn className="w-5 h-5" />
+                {isLoading ? "Signing in..." : "Sign In"}
+              </Button>
+            </form>
+
+            <div className="mt-6 pt-6 border-t border-border text-center text-sm text-muted-foreground">
+              Demo: Use any credentials to login
             </div>
-
-            <div>
-              <label htmlFor="password" className="block mb-2">
-                Password
-              </label>
-              <input
-                id="password"
-                type="password"
-                {...register("password", {
-                  required: "Password is required",
-                })}
-                className="w-full px-4 py-2.5 bg-input-background rounded-lg border border-border focus:outline-none focus:ring-2 focus:ring-ring"
-                placeholder="Enter your password"
-                disabled={isLoading}
-              />
-              {errors.password && (
-                <div className="flex items-center gap-1 mt-1.5 text-destructive">
-                  <AlertCircle className="w-4 h-4" />
-                  <span className="text-sm">
-                    {errors.password.message}
-                  </span>
-                </div>
-              )}
-            </div>
-
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              <LogIn className="w-5 h-5" />
-              {isLoading ? "Signing in..." : "Sign In"}
-            </button>
-          </form>
-
-          <div className="mt-6 pt-6 border-t border-border text-center text-sm text-muted-foreground">
-            Demo: Use any credentials to login
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
