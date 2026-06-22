@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { Home, Wrench, FileText, LogOut, Menu, X, Building2, Sun, Moon } from "lucide-react";
+import { Home, Wrench, FileText, LogOut, Menu, X, Building2, Sun, Moon, Shield, User } from "lucide-react";
 import { Toaster } from "sonner";
 import { Button } from "@/components/ui/button";
 
@@ -79,9 +79,18 @@ export default function DashboardLayout({
               </div>
               <div>
                 <h2 className="text-sm">Dormitory Portal</h2>
-                <p className="text-xs text-muted-foreground">
-                  Room {user.room}
-                </p>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <span>Room {user.room}</span>
+                  <span>•</span>
+                  <span className="flex items-center gap-1">
+                    {user.role === "manager" ? (
+                      <Shield className="w-3 h-3" />
+                    ) : (
+                      <User className="w-3 h-3" />
+                    )}
+                    {user.role === "manager" ? "Manager" : "Student"}
+                  </span>
+                </div>
               </div>
             </div>
 
