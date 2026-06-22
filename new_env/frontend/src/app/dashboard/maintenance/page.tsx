@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Plus, Search, Shield } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Plus, Search, Shield, User } from "lucide-react";
 import {
   RequestForm,
   MaintenanceRequest,
@@ -11,6 +11,7 @@ import { BroadcastBox, Broadcast } from "@/components/BroadcastBox";
 import { AdminBroadcastForm } from "@/components/AdminBroadcastForm";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -20,7 +21,7 @@ import {
 } from "@/components/ui/select";
 
 export default function MaintenancePage() {
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [user, setUser] = useState<any>(null);
   const [showForm, setShowForm] = useState(false);
   const [broadcasts, setBroadcasts] = useState<Broadcast[]>([
     {
@@ -68,6 +69,13 @@ export default function MaintenancePage() {
   const [filterCategory, setFilterCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
 
+  useEffect(() => {
+    const userData = localStorage.getItem("user");
+    if (userData) setUser(JSON.parse(userData));
+  }, []);
+
+  const isManager = user?.role === "manager";
+
   const handleSubmitRequest = (
     requestData: Omit<MaintenanceRequest, "id" | "status" | "createdAt">
   ) => {
@@ -84,6 +92,7 @@ export default function MaintenancePage() {
     id: string,
     status: MaintenanceRequest["status"]
   ) => {
+    if (!isManager) return;
     setRequests(
       requests.map((req) => (req.id === id ? { ...req, status } : req))
     );
@@ -123,6 +132,8 @@ export default function MaintenancePage() {
     resolved: requests.filter((r) => r.status === "resolved").length,
   };
 
+  if (!user) return null;
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       <div className="mb-8">
@@ -130,25 +141,30 @@ export default function MaintenancePage() {
           <div>
             <h1>Maintenance Requests</h1>
             <p className="text-muted-foreground mt-1">
-              Submit and track maintenance requests for your dorm room
+              {isManager
+                ? "Manage and update maintenance requests from residents"
+                : "Submit and track maintenance requests for your dorm room"}
             </p>
           </div>
           <div className="flex items-center gap-3">
-            <Button
-              onClick={() => setIsAdmin(!isAdmin)}
-              variant={isAdmin ? "default" : "secondary"}
-            >
-              <Shield className="w-4 h-4" />
-              {isAdmin ? "Admin Mode" : "Resident Mode"}
-            </Button>
-            <Button onClick={() => setShowForm(true)}>
-              <Plus className="w-5 h-5" />
-              New Request
-            </Button>
+            <Badge variant={isManager ? "default" : "secondary"} className="text-sm">
+              {isManager ? (
+                <Shield className="w-3 h-3 mr-1" />
+              ) : (
+                <User className="w-3 h-3 mr-1" />
+              )}
+              {isManager ? "Manager" : "Resident"}
+            </Badge>
+            {!isManager && (
+              <Button onClick={() => setShowForm(true)}>
+                <Plus className="w-5 h-5" />
+                New Request
+              </Button>
+            )}
           </div>
         </div>
 
-        {isAdmin && (
+        {isManager && (
           <div className="mb-6">
             <AdminBroadcastForm onBroadcast={handleBroadcast} />
           </div>
@@ -156,7 +172,7 @@ export default function MaintenancePage() {
 
         <BroadcastBox
           broadcasts={broadcasts}
-          onDismiss={handleDismissBroadcast}
+          onDismiss={isManager ? handleDismissBroadcast : undefined}
         />
 
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 mb-6">
@@ -245,6 +261,7 @@ export default function MaintenancePage() {
               key={request.id}
               request={request}
               onStatusChange={handleStatusChange}
+              isManager={isManager}
             />
           ))}
         </div>

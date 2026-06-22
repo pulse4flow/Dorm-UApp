@@ -1,7 +1,7 @@
 "use client";
 
 import { MaintenanceRequest } from "./RequestForm";
-import { Calendar, MapPin, AlertTriangle } from "lucide-react";
+import { Calendar, MapPin, AlertTriangle, Shield } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import {
   Select,
@@ -14,6 +14,7 @@ import {
 interface RequestCardProps {
   request: MaintenanceRequest;
   onStatusChange: (id: string, status: MaintenanceRequest["status"]) => void;
+  isManager: boolean;
 }
 
 const statusVariant: Record<string, "default" | "secondary" | "outline"> = {
@@ -45,7 +46,7 @@ const categoryIcons: Record<string, string> = {
   other: "📝",
 };
 
-export function RequestCard({ request, onStatusChange }: RequestCardProps) {
+export function RequestCard({ request, onStatusChange, isManager }: RequestCardProps) {
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat("en-US", {
       month: "short",
@@ -99,7 +100,7 @@ export function RequestCard({ request, onStatusChange }: RequestCardProps) {
           </div>
         </div>
 
-        {request.status !== "resolved" && (
+        {isManager ? (
           <Select
             value={request.status}
             onValueChange={(value) =>
@@ -115,6 +116,12 @@ export function RequestCard({ request, onStatusChange }: RequestCardProps) {
               <SelectItem value="resolved">Resolved</SelectItem>
             </SelectContent>
           </Select>
+        ) : (
+          request.status !== "resolved" && (
+            <span className="text-xs text-muted-foreground italic">
+              Awaiting manager action
+            </span>
+          )
         )}
       </div>
     </div>

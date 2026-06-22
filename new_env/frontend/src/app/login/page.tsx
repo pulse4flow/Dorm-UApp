@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
-import { LogIn, AlertCircle, Building2 } from "lucide-react";
+import { LogIn, AlertCircle, Building2, Shield, User } from "lucide-react";
 import { toast } from "sonner";
 import { Toaster } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -12,9 +12,11 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 
 interface LoginForm {
-  studentId: string;
+  userId: string;
   password: string;
 }
+
+type UserRole = "manager" | "student";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -24,25 +26,33 @@ export default function LoginPage() {
     formState: { errors },
   } = useForm<LoginForm>();
   const [isLoading, setIsLoading] = useState(false);
+  const [role, setRole] = useState<UserRole>("student");
 
   const onSubmit = async (data: LoginForm) => {
     setIsLoading(true);
 
     setTimeout(() => {
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
-          studentId: data.studentId,
-          name: "John Doe",
-          room: "A-204",
-          dormScore: 85,
-        })
-      );
+      const userData =
+        role === "manager"
+          ? {
+              id: data.userId,
+              name: "Admin Manager",
+              role: "manager" as const,
+              room: "Office",
+            }
+          : {
+              id: data.userId,
+              name: "John Doe",
+              role: "student" as const,
+              room: "A-204",
+              dormScore: 85,
+            };
 
-      toast.success("Login successful!");
+      localStorage.setItem("user", JSON.stringify(userData));
+      toast.success(`Logged in as ${role === "manager" ? "Dorm Manager" : "Student"}`);
       router.replace("/dashboard");
       setIsLoading(false);
-    }, 1000);
+    }, 800);
   };
 
   return (
@@ -61,24 +71,55 @@ export default function LoginPage() {
 
         <Card className="shadow-lg">
           <CardContent className="p-8">
+            <div className="flex gap-3 mb-6">
+              <button
+                type="button"
+                onClick={() => setRole("student")}
+                className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg border transition-all ${
+                  role === "student"
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-background text-muted-foreground border-border hover:border-primary/50"
+                }`}
+              >
+                <User className="w-5 h-5" />
+                Student
+              </button>
+              <button
+                type="button"
+                onClick={() => setRole("manager")}
+                className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg border transition-all ${
+                  role === "manager"
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-background text-muted-foreground border-border hover:border-primary/50"
+                }`}
+              >
+                <Shield className="w-5 h-5" />
+                Dorm Manager
+              </button>
+            </div>
+
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="studentId">Student ID</Label>
+                <Label htmlFor="userId">
+                  {role === "manager" ? "Manager ID" : "Student ID"}
+                </Label>
                 <Input
-                  id="studentId"
+                  id="userId"
                   type="text"
-                  {...register("studentId", {
-                    required: "Student ID is required",
+                  {...register("userId", {
+                    required: role === "manager" ? "Manager ID is required" : "Student ID is required",
                   })}
-                  placeholder="Enter your student ID"
+                  placeholder={
+                    role === "manager"
+                      ? "Enter your manager ID"
+                      : "Enter your student ID"
+                  }
                   disabled={isLoading}
                 />
-                {errors.studentId && (
+                {errors.userId && (
                   <div className="flex items-center gap-1 text-destructive">
                     <AlertCircle className="w-4 h-4" />
-                    <span className="text-sm">
-                      {errors.studentId.message}
-                    </span>
+                    <span className="text-sm">{errors.userId.message}</span>
                   </div>
                 )}
               </div>
@@ -97,9 +138,7 @@ export default function LoginPage() {
                 {errors.password && (
                   <div className="flex items-center gap-1 text-destructive">
                     <AlertCircle className="w-4 h-4" />
-                    <span className="text-sm">
-                      {errors.password.message}
-                    </span>
+                    <span className="text-sm">{errors.password.message}</span>
                   </div>
                 )}
               </div>
@@ -111,7 +150,9 @@ export default function LoginPage() {
                 size="lg"
               >
                 <LogIn className="w-5 h-5" />
-                {isLoading ? "Signing in..." : "Sign In"}
+                {isLoading
+                  ? "Signing in..."
+                  : `Sign In as ${role === "manager" ? "Manager" : "Student"}`}
               </Button>
             </form>
 
