@@ -18,7 +18,7 @@ export class EventsGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
   @WebSocketServer()
-  server: Server;
+  server!: Server;
 
   afterInit(server: Server) {
     console.log('✨ WebSocket Gateway initialized');

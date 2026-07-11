@@ -1,2 +1,2 @@
-nest-build: build
-  npx prisma migrate deploy
+nest-build: pnpm run build
+  pnpm prisma migrate deploy

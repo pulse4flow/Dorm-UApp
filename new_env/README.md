@@ -5,6 +5,7 @@ A modern full-stack application with:
 - **Backend**: NestJS + Express
 - **Database**: PostgreSQL with Prisma ORM
 - **Realtime**: Socket.io
+- **Package Manager**: pnpm (workspace)
 - **Deployment**: Vercel (Frontend) + Railway (Backend)
 
 ## Project Structure
@@ -21,6 +22,8 @@ A modern full-stack application with:
 │   ├── .env          # Local environment variables
 │   └── Dockerfile
 ├── docker-compose.yml
+├── pnpm-workspace.yaml
+├── .npmrc
 └── README.md
 ```
 
@@ -28,6 +31,7 @@ A modern full-stack application with:
 
 ### Prerequisites
 - Node.js 20+
+- pnpm (`corepack enable && corepack prepare pnpm@latest --activate`)
 - Docker & Docker Compose (optional, for containerized setup)
 - PostgreSQL 16+ (if running without Docker)
 
@@ -44,43 +48,43 @@ docker-compose up -d
 
 ### Manual Setup
 
-#### 1. Database Setup
+#### 1. Install Dependencies
+```bash
+# Install all workspace dependencies
+pnpm install
+```
+
+#### 2. Database Setup
 ```bash
 # Create PostgreSQL database
 createdb -U user -W pulse_db
 ```
 
-#### 2. Backend Setup
+#### 3. Backend Setup
 ```bash
 cd backend
 
 # Copy environment file
 cp .env.example .env
 
-# Install dependencies
-npm install
-
 # Generate Prisma client
-npm run prisma:generate
+pnpm run prisma:generate
 
 # Run database migrations
-npm run prisma:migrate
+pnpm run prisma:migrate
 
 # Start development server
-npm run dev
+pnpm run dev
 ```
 
 Backend runs on: `http://localhost:3001`
 
-#### 3. Frontend Setup
+#### 4. Frontend Setup
 ```bash
 cd frontend
 
-# Install dependencies
-npm install
-
 # Start development server
-npm run dev
+pnpm run dev
 ```
 
 Frontend runs on: `http://localhost:3000`
@@ -103,22 +107,31 @@ NEXT_PUBLIC_SOCKET_IO_URL=http://localhost:3001
 
 ## Available Scripts
 
+### Root (Workspace)
+```bash
+pnpm dev                  # Start all services in parallel
+pnpm dev:backend          # Start backend only
+pnpm dev:frontend         # Start frontend only
+pnpm build                # Build all packages
+pnpm lint                 # Lint all packages
+```
+
 ### Backend
 ```bash
-npm run dev              # Development mode with hot reload
-npm run build            # Build TypeScript
-npm run start:prod       # Production mode
-npm run prisma:migrate   # Create database migrations
-npm run prisma:studio    # Open Prisma Studio UI
-npm run lint             # Run ESLint
+pnpm run dev              # Development mode with hot reload
+pnpm run build            # Build TypeScript
+pnpm run start:prod       # Production mode
+pnpm run prisma:migrate   # Create database migrations
+pnpm run prisma:studio    # Open Prisma Studio UI
+pnpm run lint             # Run ESLint
 ```
 
 ### Frontend
 ```bash
-npm run dev              # Development mode
-npm run build            # Build for production
-npm start                # Start production server
-npm run lint             # Run ESLint
+pnpm run dev              # Development mode
+pnpm run build            # Build for production
+pnpm start                # Start production server
+pnpm run lint             # Run ESLint
 ```
 
 ## Database Migrations
@@ -126,12 +139,12 @@ npm run lint             # Run ESLint
 ### Create a new migration
 ```bash
 cd backend
-npm run prisma:migrate -- --name migration_name
+pnpm run prisma:migrate -- --name migration_name
 ```
 
 ### Apply migrations in production
 ```bash
-npm run prisma:migrate:prod
+pnpm run prisma:migrate:prod
 ```
 
 ## Deployment
@@ -224,12 +237,23 @@ lsof -ti:3001 | xargs kill -9
 - Check that Socket.io URL matches in environment variables
 - Ensure backend is running and accessible
 
+### pnpm Issues
+```bash
+# If pnpm is not found, enable corepack
+corepack enable
+corepack prepare pnpm@latest --activate
+
+# If install fails due to build scripts
+pnpm approve-builds
+```
+
 ## Development Tips
 
 1. **Hot Reload**: Both frontend and backend support hot reload in development mode
-2. **Database Explorer**: Use `npm run prisma:studio` to visualize database
+2. **Database Explorer**: Use `pnpm run prisma:studio` to visualize database
 3. **TypeScript**: Full type safety across the stack
 4. **CORS**: Already configured for development and production
+5. **Workspace**: Use root scripts to manage both packages (`pnpm dev`, `pnpm build`)
 
 ## License
 

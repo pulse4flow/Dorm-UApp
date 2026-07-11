@@ -1,8 +1,8 @@
-# ✅ Environment Setup Complete
+# Environment Setup Complete
 
 Your full-stack development environment is now ready! Here's what has been configured:
 
-## 📦 Project Architecture
+## Project Architecture
 
 ```
 school-pbl/
@@ -31,39 +31,45 @@ school-pbl/
 │   └── Procfile           # Procfile for deployment
 │
 ├── docker-compose.yml     # Local development stack
+├── pnpm-workspace.yaml    # pnpm workspace config
+├── .npmrc                 # pnpm settings
+├── package.json           # Root workspace scripts
 ├── README.md              # Main documentation
 └── SETUP.md               # Detailed setup guide
-
 ```
 
-## 🛠 Technologies Installed
+## Technologies Installed
 
 ### Frontend
-- ✅ Next.js 16.2.6
-- ✅ React 19.2.4
-- ✅ TypeScript 5
-- ✅ Socket.io-client 4.8.1
-- ✅ Tailwind CSS 4
-- ✅ ESLint 9
+- Next.js 16.2.6
+- React 19.2.4
+- TypeScript 5
+- Socket.io-client 4.8.1
+- Tailwind CSS 4
+- ESLint 9
 
 ### Backend
-- ✅ NestJS 10.3.10
-- ✅ Express (via NestJS)
-- ✅ TypeScript 5.4.5
-- ✅ Socket.io 4.8.1
-- ✅ Prisma Client 5.19.0
-- ✅ Prisma CLI 5.19.0
+- NestJS 10.3.10
+- Express (via NestJS)
+- TypeScript 5.4.5
+- Socket.io 4.8.1
+- Prisma Client 5.19.0
+- Prisma CLI 5.19.0
 
 ### Database
-- ✅ PostgreSQL 16 (configured)
-- ✅ Prisma ORM (ready to use)
+- PostgreSQL 16 (configured)
+- Prisma ORM (ready to use)
 
 ### Deployment
-- ✅ Docker & Docker Compose (local dev)
-- ✅ Vercel config (frontend)
-- ✅ Railway config (backend)
+- Docker & Docker Compose (local dev)
+- Vercel config (frontend)
+- Railway config (backend)
 
-## 🚀 Quick Start
+### Package Manager
+- pnpm (workspace mode)
+- `shamefully-hoist=true` for compatibility
+
+## Quick Start
 
 ### 1. Start with Docker Compose (Easiest)
 ```bash
@@ -75,13 +81,14 @@ docker-compose up
 
 ### 2. Manual Development
 ```bash
+# Install all dependencies
+pnpm install
+
 # Terminal 1: Backend
-cd backend
-npm run dev
+pnpm --filter backend dev
 
 # Terminal 2: Frontend
-cd frontend
-npm run dev
+pnpm --filter frontend dev
 
 # Terminal 3: Database
 # Start PostgreSQL separately
@@ -89,16 +96,15 @@ npm run dev
 
 ### 3. Build for Production
 ```bash
-# Backend
-cd backend
-npm run build
+# All packages
+pnpm build
 
-# Frontend
-cd frontend
-npm run build
+# Or individually
+pnpm --filter backend build
+pnpm --filter frontend build
 ```
 
-## 📝 Key Files
+## Key Files
 
 ### Backend Setup
 - **Entry Point**: `backend/src/main.ts`
@@ -116,7 +122,7 @@ npm run build
 - Backend: `backend/.env`
 - Frontend: `frontend/.env.local`
 
-## 🗄 Database Setup
+## Database Setup
 
 Your Prisma schema includes a basic `User` model. To create the database:
 
@@ -124,13 +130,13 @@ Your Prisma schema includes a basic `User` model. To create the database:
 cd backend
 
 # Run migrations
-npm run prisma:migrate
+pnpm run prisma:migrate
 
 # Open Prisma Studio UI
-npm run prisma:studio
+pnpm run prisma:studio
 ```
 
-## 🔄 Real-time Communication
+## Real-time Communication
 
 Socket.io is configured for real-time features:
 
@@ -157,7 +163,7 @@ export function MyComponent() {
 }
 ```
 
-## 🌐 Deployment Checklist
+## Deployment Checklist
 
 ### Railway (Backend)
 - [ ] Push code to GitHub
@@ -176,8 +182,7 @@ export function MyComponent() {
   - `NEXT_PUBLIC_SOCKET_IO_URL=<railway-url>`
 - [ ] Deploy
 
-## 📚 Documentation
-
+## Documentation
 - **Main Guide**: `README.md`
 - **Setup Guide**: `SETUP.md`
 - **NestJS Docs**: https://docs.nestjs.com/
@@ -185,11 +190,11 @@ export function MyComponent() {
 - **Prisma Docs**: https://www.prisma.io/docs/
 - **Socket.io Docs**: https://socket.io/docs/
 
-## 🎯 Next Steps
+## Next Steps
 
 1. **Define Your Data Model**
    - Edit `backend/prisma/schema.prisma`
-   - Run `npm run prisma:migrate`
+   - Run `pnpm run prisma:migrate`
 
 2. **Create API Endpoints**
    - Add controllers in `backend/src/app`
@@ -208,27 +213,36 @@ export function MyComponent() {
    - Deploy backend to Railway
    - Deploy frontend to Vercel
 
-## ⚡ Available Scripts
+## Available Scripts
+
+### Root (Workspace)
+```bash
+pnpm dev                  # Start all services in parallel
+pnpm dev:backend          # Start backend only
+pnpm dev:frontend         # Start frontend only
+pnpm build                # Build all packages
+pnpm lint                 # Lint all packages
+```
 
 ### Backend
 ```bash
-npm run dev              # Development with hot reload
-npm run build            # Production build
-npm run start:prod       # Run production build
-npm run prisma:migrate   # Create/run migrations
-npm run prisma:studio    # Open database UI
-npm run lint             # Run ESLint
+pnpm run dev              # Development with hot reload
+pnpm run build            # Production build
+pnpm run start:prod       # Run production build
+pnpm run prisma:migrate   # Create/run migrations
+pnpm run prisma:studio    # Open database UI
+pnpm run lint             # Run ESLint
 ```
 
 ### Frontend
 ```bash
-npm run dev              # Development with hot reload
-npm run build            # Production build
-npm start                # Run production build
-npm run lint             # Run ESLint
+pnpm run dev              # Development with hot reload
+pnpm run build            # Production build
+pnpm start                # Run production build
+pnpm run lint             # Run ESLint
 ```
 
-## 🆘 Troubleshooting
+## Troubleshooting
 
 **Port conflicts?**
 ```bash
@@ -246,6 +260,12 @@ lsof -ti:3001 | xargs kill -9  # Backend
 - Verify socket URL in `frontend/.env.local`
 - Check browser console errors
 
+**pnpm not found?**
+```bash
+corepack enable
+corepack prepare pnpm@latest --activate
+```
+
 **Need help?**
 - See `SETUP.md` for detailed instructions
 - Check `README.md` for API documentation
@@ -253,4 +273,4 @@ lsof -ti:3001 | xargs kill -9  # Backend
 
 ---
 
-**Ready to start building!** 🎉
+**Ready to start building!**
