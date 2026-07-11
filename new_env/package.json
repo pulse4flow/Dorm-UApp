@@ -1,0 +1,18 @@
+{
+  "name": "dorm-uapp",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --parallel -r run dev",
+    "dev:backend": "pnpm --filter backend dev",
+    "dev:frontend": "pnpm --filter frontend dev",
+    "build": "pnpm --parallel -r run build",
+    "build:backend": "pnpm --filter backend build",
+    "build:frontend": "pnpm --filter frontend build",
+    "lint": "pnpm --parallel -r run lint",
+    "lint:backend": "pnpm --filter backend lint",
+    "lint:frontend": "pnpm --filter frontend lint"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

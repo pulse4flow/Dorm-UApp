@@ -1,26 +1,32 @@
 FROM node:20-alpine AS builder
 
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
 WORKDIR /app
 
-COPY package*.json ./
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc ./
+COPY frontend/package.json frontend/
 
-RUN npm install
+RUN pnpm install --frozen-lockfile
 
-COPY . .
+COPY frontend/ ./frontend/
 
-RUN npm run build
+RUN cd frontend && pnpm run build
 
 FROM node:20-alpine
 
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
 WORKDIR /app
 
-COPY package*.json ./
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc ./
+COPY frontend/package.json frontend/
 
-RUN npm install --production
+RUN pnpm install --frozen-lockfile --prod
 
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
+COPY --from=builder /app/frontend/.next ./frontend/.next
+COPY --from=builder /app/frontend/public ./frontend/public
 
 EXPOSE 3000
 
-CMD ["npm", "start"]
+CMD ["pnpm", "--filter", "frontend", "run", "start"]

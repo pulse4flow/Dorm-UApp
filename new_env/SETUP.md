@@ -8,26 +8,36 @@ This document provides step-by-step instructions for setting up and deploying yo
 
 Ensure you have installed:
 - Node.js 20+ ([Download](https://nodejs.org/))
+- pnpm (package manager)
 - PostgreSQL 16+ ([Download](https://www.postgresql.org/download/))
 - Git ([Download](https://git-scm.com/))
 - Docker & Docker Compose (Optional, for containerized development)
 
-### 2. Clone and Install
+### 2. Install pnpm
 
 ```bash
-# Install backend dependencies
-cd backend
-npm install
+# Enable corepack (built into Node.js)
+corepack enable
 
-# Install frontend dependencies
-cd ../frontend
-npm install
+# Install pnpm
+corepack prepare pnpm@latest --activate
 
-# Return to root
-cd ..
+# Verify installation
+pnpm --version
 ```
 
-### 3. Database Setup
+### 3. Clone and Install
+
+```bash
+# Clone the repository
+git clone <repo-url>
+cd Dorm-UApp/new_env
+
+# Install all workspace dependencies
+pnpm install
+```
+
+### 4. Database Setup
 
 #### Option A: Manual PostgreSQL Setup
 ```bash
@@ -52,7 +62,7 @@ DATABASE_URL=postgresql://pulse_user:pulse_password@localhost:5432/pulse_db
 docker-compose up -d postgres
 ```
 
-### 4. Backend Setup
+### 5. Backend Setup
 
 ```bash
 cd backend
@@ -61,18 +71,18 @@ cd backend
 cp .env.example .env
 
 # Generate Prisma client
-npm run prisma:generate
+pnpm run prisma:generate
 
 # Create tables (runs migrations)
-npm run prisma:migrate
+pnpm run prisma:migrate
 
 # Start development server
-npm run dev
+pnpm run dev
 ```
 
 Backend will be available at: `http://localhost:3001`
 
-### 5. Frontend Setup
+### 6. Frontend Setup
 
 ```bash
 cd frontend
@@ -81,7 +91,7 @@ cd frontend
 cp .env.example .env.local
 
 # Start development server
-npm run dev
+pnpm run dev
 ```
 
 Frontend will be available at: `http://localhost:3000`
@@ -135,7 +145,7 @@ All services will be automatically configured and connected.
 5. **Configure Start Command**
    - In the railway.toml or in Railway dashboard:
      ```
-     npm run prisma:migrate:prod && npm run start:prod
+     pnpm --filter backend run start:prod
      ```
 
 6. **Deploy**
@@ -189,10 +199,10 @@ NEXT_PUBLIC_SOCKET_IO_URL=https://your-backend.railway.app
 cd backend
 
 # Create new migration
-npm run prisma:migrate -- --name descriptive_name
+pnpm run prisma:migrate -- --name descriptive_name
 
 # Open Prisma Studio UI
-npm run prisma:studio
+pnpm run prisma:studio
 
 # Reset database (WARNING: deletes all data)
 npx prisma migrate reset
@@ -201,21 +211,25 @@ npx prisma migrate reset
 ### Development
 ```bash
 # Backend hot reload
-cd backend && npm run dev
+cd backend && pnpm run dev
 
 # Frontend hot reload
-cd frontend && npm run dev
+cd frontend && pnpm run dev
 
-# Run both (in separate terminals)
+# Both in parallel from root
+pnpm dev
 ```
 
 ### Production Build
 ```bash
+# Build all packages
+pnpm build
+
 # Build backend
-cd backend && npm run build
+cd backend && pnpm run build
 
 # Build frontend
-cd frontend && npm run build
+cd frontend && pnpm run build
 ```
 
 ## Troubleshooting
@@ -256,6 +270,21 @@ npx prisma migrate resolve --rolled-back
 npx prisma migrate deploy --skip-validate
 ```
 
+### pnpm Issues
+```bash
+# If pnpm is not found
+corepack enable
+corepack prepare pnpm@latest --activate
+
+# If install fails due to build scripts
+pnpm approve-builds
+
+# Clear pnpm store and reinstall
+pnpm store prune
+rm -rf node_modules
+pnpm install
+```
+
 ## Next Steps
 
 1. **Create Models**: Add entities to `backend/prisma/schema.prisma`
@@ -270,6 +299,7 @@ npx prisma migrate deploy --skip-validate
 - [Next.js Documentation](https://nextjs.org/docs)
 - [Prisma Documentation](https://www.prisma.io/docs/)
 - [Socket.io Documentation](https://socket.io/docs/)
+- [pnpm Documentation](https://pnpm.io/)
 - [Railway Documentation](https://docs.railway.app/)
 - [Vercel Documentation](https://vercel.com/docs)
 

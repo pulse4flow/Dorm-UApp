@@ -2,6 +2,8 @@
   "compilerOptions": {
     "module": "commonjs",
     "target": "ES2021",
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
     "lib": ["ES2021"],
     "outDir": "./dist",
     "rootDir": "./src",
