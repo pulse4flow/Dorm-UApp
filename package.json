@@ -1,0 +1,30 @@
+{
+  "name": "dorm-uapp",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --parallel -r run dev",
+    "dev:backend": "pnpm --filter backend dev",
+    "dev:frontend": "pnpm --filter frontend dev",
+    "build": "pnpm --parallel -r run build",
+    "build:backend": "pnpm --filter backend build",
+    "build:frontend": "pnpm --filter frontend build",
+    "lint": "pnpm --parallel -r run lint",
+    "lint:backend": "pnpm --filter backend lint",
+    "lint:frontend": "pnpm --filter frontend lint",
+    "db:generate": "pnpm --filter database prisma:generate",
+    "db:migrate": "pnpm --filter database prisma:migrate",
+    "db:seed": "pnpm --filter database prisma:seed",
+    "db:studio": "pnpm --filter database prisma:studio",
+    "db:reset": "pnpm --filter database prisma:reset",
+    "start": "pnpm --parallel -r run start",
+    "start:backend": "pnpm --filter backend start:prod",
+    "start:frontend": "pnpm --filter frontend start",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:db": "docker-compose up -d postgres",
+    "setup": "pnpm install && pnpm db:migrate && pnpm db:seed"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
