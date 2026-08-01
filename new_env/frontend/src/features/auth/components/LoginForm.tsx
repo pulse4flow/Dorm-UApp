@@ -9,9 +9,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
+import { AuthService } from "@/services/auth.service";
 
 interface LoginForm {
-  userId: string;
+  email: string;
   password: string;
 }
 
@@ -34,28 +35,23 @@ export function LoginForm({ onLogin }: LoginFormProps) {
   const onSubmit = async (data: LoginForm) => {
     setIsLoading(true);
 
-    setTimeout(() => {
-      const userData =
-        role === "manager"
-          ? {
-              id: data.userId,
-              name: "Admin Manager",
-              role: "manager" as const,
-              room: "Office",
-            }
-          : {
-              id: data.userId,
-              name: "John Doe",
-              role: "student" as const,
-              room: "A-204",
-              dormScore: 85,
-            };
+    try {
+      const response = await AuthService.login({
+        userId: data.email,
+        password: data.password,
+        role,
+      });
 
-      localStorage.setItem("user", JSON.stringify(userData));
+      localStorage.setItem("user", JSON.stringify(response.user));
+      localStorage.setItem("token", response.token);
+
       toast.success(`Logged in as ${role === "manager" ? "Dorm Manager" : "Student"}`);
       router.replace("/");
+    } catch (error: any) {
+      toast.error(error.message || "Login failed");
+    } finally {
       setIsLoading(false);
-    }, 800);
+    }
   };
 
   return (
@@ -116,26 +112,26 @@ export function LoginForm({ onLogin }: LoginFormProps) {
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="userId">
-                  {role === "manager" ? "Manager ID" : "Student ID"}
+                <Label htmlFor="email">
+                  {role === "manager" ? "Email" : "Email"}
                 </Label>
                 <Input
-                  id="userId"
-                  type="text"
-                  {...register("userId", {
-                    required: role === "manager" ? "Manager ID is required" : "Student ID is required",
+                  id="email"
+                  type="email"
+                  {...register("email", {
+                    required: "Email is required",
                   })}
                   placeholder={
                     role === "manager"
-                      ? "Enter your manager ID"
-                      : "Enter your student ID"
+                      ? "admin@dorm.com"
+                      : "student1@test.com"
                   }
                   disabled={isLoading}
                 />
-                {errors.userId && (
+                {errors.email && (
                   <div className="flex items-center gap-1 text-destructive">
                     <AlertCircle className="w-4 h-4" />
-                    <span className="text-sm">{errors.userId.message}</span>
+                    <span className="text-sm">{errors.email.message}</span>
                   </div>
                 )}
               </div>
@@ -173,7 +169,13 @@ export function LoginForm({ onLogin }: LoginFormProps) {
             </form>
 
             <div className="mt-6 pt-6 border-t border-border text-center text-sm text-muted-foreground">
-              Demo: Use any credentials to login
+              <p className="mb-2">Demo Accounts:</p>
+              <p className="font-mono text-xs">
+                Student: student1@test.com / password123
+              </p>
+              <p className="font-mono text-xs">
+                Manager: admin@dorm.com / admin123
+              </p>
             </div>
           </CardContent>
         </Card>

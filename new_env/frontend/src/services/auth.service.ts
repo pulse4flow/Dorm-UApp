@@ -22,7 +22,10 @@ export interface RegisterData {
 
 export const AuthService = {
   login: async (credentials: LoginCredentials) => {
-    return BaseService.post<LoginResponse>("/auth/login", credentials);
+    return BaseService.post<LoginResponse>("/auth/login", {
+      email: credentials.userId,
+      password: credentials.password,
+    });
   },
 
   register: async (data: RegisterData) => {
