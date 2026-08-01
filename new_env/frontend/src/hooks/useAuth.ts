@@ -3,13 +3,14 @@
 import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { UserProfile, UserRole } from "@/types";
+import { AuthService, LoginResponse } from "@/services/auth.service";
 
 interface UseAuthReturn {
   user: UserProfile | null;
   isLoading: boolean;
   isAuthenticated: boolean;
   isManager: boolean;
-  login: (userId: string, password: string, role: UserRole) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   updateUser: (data: Partial<UserProfile>) => void;
 }
@@ -21,52 +22,40 @@ export function useAuth(): UseAuthReturn {
 
   useEffect(() => {
     const userData = localStorage.getItem("user");
-    if (userData) {
+    const token = localStorage.getItem("token");
+    if (userData && token) {
       try {
         setUser(JSON.parse(userData));
       } catch {
         localStorage.removeItem("user");
+        localStorage.removeItem("token");
       }
     }
     setIsLoading(false);
   }, []);
 
   const login = useCallback(
-    async (userId: string, password: string, role: UserRole) => {
+    async (email: string, password: string) => {
       setIsLoading(true);
 
-      // Simulated login - replace with actual API call
-      const userData: UserProfile =
-        role === "manager"
-          ? {
-              id: userId,
-              name: "Admin Manager",
-              role: "manager",
-              room: "Office",
-              email: "admin@dorm.com",
-              createdAt: new Date(),
-              updatedAt: new Date(),
-            }
-          : {
-              id: userId,
-              name: "John Doe",
-              role: "student",
-              room: "A-204",
-              dormScore: 85,
-              email: "john@dorm.com",
-              createdAt: new Date(),
-              updatedAt: new Date(),
-            };
+      try {
+        const response = await AuthService.login({ userId: email, password, role: "student" });
 
-      localStorage.setItem("user", JSON.stringify(userData));
-      setUser(userData);
-      setIsLoading(false);
+        localStorage.setItem("user", JSON.stringify(response.user));
+        localStorage.setItem("token", response.token);
+        setUser(response.user);
+        setIsLoading(false);
+      } catch (error) {
+        setIsLoading(false);
+        throw error;
+      }
     },
     []
   );
 
   const logout = useCallback(() => {
     localStorage.removeItem("user");
+    localStorage.removeItem("token");
     setUser(null);
     router.push("/login");
   }, [router]);

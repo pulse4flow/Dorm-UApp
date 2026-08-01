@@ -4,6 +4,13 @@ interface FetchOptions extends RequestInit {
   params?: Record<string, string | number | boolean>;
 }
 
+function getToken(): string | null {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('token');
+  }
+  return null;
+}
+
 async function apiCall<T>(
   endpoint: string,
   options: FetchOptions = {}
@@ -20,12 +27,19 @@ async function apiCall<T>(
     url += `?${searchParams.toString()}`;
   }
 
+  const token = getToken();
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...((fetchOptions.headers as Record<string, string>) || {}),
+  };
+
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
   const response = await fetch(url, {
-    headers: {
-      'Content-Type': 'application/json',
-      ...fetchOptions.headers,
-    },
     ...fetchOptions,
+    headers,
   });
 
   if (!response.ok) {
