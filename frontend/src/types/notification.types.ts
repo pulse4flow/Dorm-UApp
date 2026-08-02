@@ -11,9 +11,7 @@ export interface Notification {
 }
 
 export type NotificationType =
-  | "announcement"
   | "repair"
-  | "activity"
   | "score"
   | "system";
 

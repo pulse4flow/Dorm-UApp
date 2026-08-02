@@ -41,16 +41,8 @@ enum RepairStatus {
   resolved
 }
 
-enum AnnouncementType {
-  info
-  warning
-  urgent
-}
-
 enum NotificationType {
-  announcement
   repair
-  activity
   score
   system
 }
@@ -65,9 +57,9 @@ model User {
   updatedAt DateTime @updatedAt
 
   student       Student?
-  announcements Announcement[]
-  activities    Activity[]
   notifications Notification[]
+
+  @@index([role])
 }
 
 model Student {
@@ -84,8 +76,11 @@ model Student {
   user                User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
   room                Room                 @relation(fields: [roomId], references: [id], onDelete: Cascade)
   repairs             Repair[]
-  activities          ActivityParticipant[]
   scoreHistory        ScoreHistory[]
+
+  @@index([roomId])
+  @@index([name])
+  @@index([dormScore])
 }
 
 model Room {
@@ -101,6 +96,11 @@ model Room {
 
   students Student[]
   repairs  Repair[]
+
+  @@index([building])
+  @@index([floor])
+  @@index([status])
+  @@index([building, floor])
 }
 
 model Repair {
@@ -118,48 +118,13 @@ model Repair {
 
   student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
   room    Room    @relation(fields: [roomId], references: [id], onDelete: Cascade)
-}
 
-model Announcement {
-  id        String           @id @default(cuid())
-  title     String
-  message   String
-  type      AnnouncementType @default(info)
-  createdBy Int
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  author User @relation(fields: [createdBy], references: [id], onDelete: Cascade)
-}
-
-model Activity {
-  id              String  @id @default(cuid())
-  title           String
-  description     String
-  location        String
-  startTime       DateTime
-  endTime         DateTime
-  maxParticipants Int?
-  createdBy       Int
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  author       User                 @relation(fields: [createdBy], references: [id], onDelete: Cascade)
-  participants ActivityParticipant[]
-}
-
-model ActivityParticipant {
-  id         String   @id @default(cuid())
-  activityId String
-  studentId  String
-  joinedAt   DateTime @default(now())
-
-  activity Activity @relation(fields: [activityId], references: [id], onDelete: Cascade)
-  student  Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
-
-  @@unique([activityId, studentId])
+  @@index([status])
+  @@index([category])
+  @@index([priority])
+  @@index([studentId])
+  @@index([roomId])
+  @@index([createdAt])
 }
 
 model Notification {
@@ -175,6 +140,13 @@ model Notification {
   updatedAt DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isRead])
+  @@index([type])
+  @@index([userId, isRead])
+  @@index([userId, type])
+  @@index([createdAt])
 }
 
 model ScoreHistory {
@@ -189,4 +161,7 @@ model ScoreHistory {
   createdAt DateTime @default(now())
 
   student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@index([createdAt])
 }

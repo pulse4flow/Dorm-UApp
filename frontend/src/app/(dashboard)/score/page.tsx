@@ -1,60 +1,43 @@
 "use client";
 
 import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks";
 import { ScoreDisplay, ScoreAdjustForm } from "@/features/score";
 import { DormitoryScore, ScoreHistory, ScoreAdjustment } from "@/types";
+import { BaseService } from "@/services/api-base";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { TrendingUp, TrendingDown } from "lucide-react";
 
-const mockScore: DormitoryScore = {
-  id: "score-1",
-  studentId: "STU-042",
-  score: 85,
-  createdAt: new Date(),
-  updatedAt: new Date(),
-};
-
-const mockHistory: ScoreHistory[] = [
-  {
-    id: "log1",
-    studentId: "STU-042",
-    studentName: "John Doe",
-    previousScore: 90,
-    newScore: 85,
-    reason: "Late noise complaint violation on May 15th",
-    changedBy: "Admin Manager",
-    createdAt: new Date(2026, 4, 16, 10, 0),
-  },
-  {
-    id: "log2",
-    studentId: "STU-042",
-    studentName: "John Doe",
-    previousScore: 85,
-    newScore: 82,
-    reason: "Missed room inspection appointment",
-    changedBy: "Admin Manager",
-    createdAt: new Date(2026, 4, 20, 14, 30),
-  },
-  {
-    id: "log3",
-    studentId: "STU-042",
-    studentName: "John Doe",
-    previousScore: 82,
-    newScore: 85,
-    reason: "Excellent participation in community event",
-    changedBy: "Admin Manager",
-    createdAt: new Date(2026, 4, 25, 9, 0),
-  },
-];
-
 export default function ScorePage() {
   const { user, isManager } = useAuth();
-  const [score, setScore] = useState<DormitoryScore>(mockScore);
-  const [history, setHistory] = useState<ScoreHistory[]>(mockHistory);
+  const queryClient = useQueryClient();
   const [showAdjustForm, setShowAdjustForm] = useState(false);
+
+  const { data: score, isLoading: loadingScore } = useQuery({
+    queryKey: ["myScore", user?.id],
+    queryFn: () => BaseService.get<DormitoryScore>("/score/my-score"),
+    enabled: !!user,
+    staleTime: 30000,
+  });
+
+  const { data: history = [], isLoading: loadingHistory } = useQuery({
+    queryKey: ["myScoreHistory", user?.id],
+    queryFn: () => BaseService.get<ScoreHistory[]>("/score/my-history"),
+    enabled: !!user,
+    staleTime: 30000,
+  });
+
+  const adjustScoreMutation = useMutation({
+    mutationFn: (data: ScoreAdjustment) => BaseService.post<ScoreHistory>("/score/adjust", data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["myScore", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["myScoreHistory", user?.id] });
+      setShowAdjustForm(false);
+    },
+  });
 
   const getScoreColor = (score: number) => {
     if (score >= 80) return "text-green-600 dark:text-green-400";
@@ -73,24 +56,7 @@ export default function ScorePage() {
   };
 
   const handleAdjustScore = (data: ScoreAdjustment) => {
-    const newScore = {
-      ...score,
-      score: data.score,
-      updatedAt: new Date(),
-    };
-    setScore(newScore);
-
-    const newLog: ScoreHistory = {
-      id: Date.now().toString(),
-      studentId: data.studentId,
-      studentName: user?.name || "Student",
-      previousScore: score.score,
-      newScore: data.score,
-      reason: data.reason,
-      changedBy: user?.name || "Manager",
-      createdAt: new Date(),
-    };
-    setHistory([newLog, ...history]);
+    adjustScoreMutation.mutate(data);
   };
 
   if (!user) {
@@ -114,10 +80,12 @@ export default function ScorePage() {
       </div>
 
       <div className="mb-8">
-        <ScoreDisplay
-          score={score}
-          showDetails={true}
-        />
+        {score && (
+          <ScoreDisplay
+            score={score}
+            showDetails={true}
+          />
+        )}
         {isManager && (
           <div className="mt-4">
             <Button onClick={() => setShowAdjustForm(true)}>
@@ -180,7 +148,7 @@ export default function ScorePage() {
         <ScoreAdjustForm
           studentId={String(user.id)}
           studentName={user.name}
-          currentScore={score.score}
+          currentScore={score?.score || 100}
           onSubmit={handleAdjustScore}
           onClose={() => setShowAdjustForm(false)}
         />

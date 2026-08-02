@@ -7,9 +7,7 @@ import { PrismaModule } from '../prisma/prisma.module';
 import { AuthModule } from '../auth/auth.module';
 import { StudentsModule } from '../students/students.module';
 import { RoomsModule } from '../rooms/rooms.module';
-import { AnnouncementsModule } from '../announcements/announcements.module';
 import { RepairsModule } from '../repairs/repairs.module';
-import { ActivitiesModule } from '../activities/activities.module';
 import { ScoresModule } from '../scores/scores.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 
@@ -20,9 +18,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
     AuthModule,
     StudentsModule,
     RoomsModule,
-    AnnouncementsModule,
     RepairsModule,
-    ActivitiesModule,
     ScoresModule,
     NotificationsModule,
   ],

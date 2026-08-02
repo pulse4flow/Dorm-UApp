@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
-import { UserProfile, UserRole } from "@/types";
-import { AuthService, LoginResponse } from "@/services/auth.service";
+import { UserProfile } from "@/types";
+import { AuthService } from "@/services/auth.service";
 
 interface UseAuthReturn {
   user: UserProfile | null;
@@ -16,7 +15,6 @@ interface UseAuthReturn {
 }
 
 export function useAuth(): UseAuthReturn {
-  const router = useRouter();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -57,8 +55,8 @@ export function useAuth(): UseAuthReturn {
     localStorage.removeItem("user");
     localStorage.removeItem("token");
     setUser(null);
-    router.push("/login");
-  }, [router]);
+    window.location.href = "/login";
+  }, []);
 
   const updateUser = useCallback(
     (data: Partial<UserProfile>) => {

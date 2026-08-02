@@ -183,33 +183,6 @@ async function main() {
 
   console.log('✅ Students created');
 
-  // Create Announcements
-  await prisma.announcement.createMany({
-    data: [
-      {
-        title: 'ประกาศปิดปรับปรุงระบบไฟฟ้า',
-        message: 'จะมีการปิดปรับปรุงระบบไฟฟ้าในวันเสาร์ที่ 5 สิงหาคม 2569 เวลา 08:00-17:00 น.',
-        type: 'urgent',
-        createdBy: admin.id,
-      },
-      {
-        title: 'กิจกรรมต้อนรับนักศึกษาใหม่',
-        message: 'เชิญร่วมกิจกรรมต้อนรับนักศึกษาใหม่ในวันจันทร์ที่ 7 สิงหาคม 2569 เวลา 09:00 น. ที่ห้องประชุมใหญ่',
-        type: 'info',
-        createdBy: staff.id,
-      },
-      {
-        title: 'แจ้งเกี่ยวกับการเก็บค่าน้ำ',
-        message: 'กรุณาชำระค่าน้ำประจำเดือนกรกฎาคม ภายในวันที่ 10 สิงหาคม 2569',
-        type: 'warning',
-        createdBy: admin.id,
-      },
-    ],
-    skipDuplicates: true,
-  });
-
-  console.log('✅ Announcements created');
-
   // Create Repairs
   await prisma.repair.createMany({
     data: [
@@ -259,46 +232,6 @@ async function main() {
 
   console.log('✅ Repairs created');
 
-  // Create Activities
-  const activity1 = await prisma.activity.create({
-    data: {
-      title: 'กิจกรรมทำความสะอาดหอพัก',
-      description: 'ร่วมกันทำความสะอาดพื้นที่ส่วนกลางของหอพัก',
-      location: 'ล็อบบี้ อาคาร A',
-      startTime: new Date('2026-08-15T09:00:00Z'),
-      endTime: new Date('2026-08-15T12:00:00Z'),
-      maxParticipants: 20,
-      createdBy: admin.id,
-    },
-  });
-
-  const activity2 = await prisma.activity.create({
-    data: {
-      title: 'อบรมดับเพลิง',
-      description: 'อบรมการใช้ถังดับเพลิงและการอพยพเมื่อเกิดเพลิงไหม้',
-      location: 'ห้องประชุม อาคาร B',
-      startTime: new Date('2026-08-20T13:00:00Z'),
-      endTime: new Date('2026-08-20T16:00:00Z'),
-      maxParticipants: 30,
-      createdBy: staff.id,
-    },
-  });
-
-  console.log('✅ Activities created');
-
-  // Create Activity Participants
-  await prisma.activityParticipant.createMany({
-    data: [
-      { activityId: activity1.id, studentId: student1Profile.id },
-      { activityId: activity1.id, studentId: student2Profile.id },
-      { activityId: activity2.id, studentId: student1Profile.id },
-      { activityId: activity2.id, studentId: student3Profile.id },
-    ],
-    skipDuplicates: true,
-  });
-
-  console.log('✅ Activity participants created');
-
   // Create Score History
   await prisma.scoreHistory.createMany({
     data: [
@@ -343,25 +276,11 @@ async function main() {
         link: '/repairs',
       },
       {
-        userId: student1.id,
-        title: 'ประกาศใหม่',
-        message: 'มีประกาศปิดปรับปรุงระบบไฟฟ้า',
-        type: 'announcement',
-        link: '/announcements',
-      },
-      {
         userId: student2.id,
         title: 'คะแนนหอพักลดลง',
         message: 'คะแนนหอพักของคุณลดลง 12 คะแนน',
         type: 'score',
         link: '/score',
-      },
-      {
-        userId: student3.id,
-        title: 'กิจกรรมที่เข้าร่วมใกล้ถึงเวลา',
-        message: 'กิจกรรมทำความสะอาดหอพักจะเริ่มในอีก 3 วัน',
-        type: 'activity',
-        link: '/activities',
       },
     ],
     skipDuplicates: true,

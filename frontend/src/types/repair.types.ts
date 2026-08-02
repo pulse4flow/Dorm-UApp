@@ -35,7 +35,7 @@ export type RepairCategory =
 
 export type RepairPriority = "low" | "medium" | "high" | "urgent";
 
-export type RepairStatus = "pending" | "in-progress" | "resolved";
+export type RepairStatus = "pending" | "in_progress" | "resolved";
 
 export interface RepairFormData {
   roomNumber: string;

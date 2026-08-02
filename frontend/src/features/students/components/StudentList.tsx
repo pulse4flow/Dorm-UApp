@@ -13,26 +13,19 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { StudentForm } from "./StudentForm";
-
-interface Student {
-  id: string;
-  studentId: string;
-  password: string;
-  name: string;
-  roomNumber: string;
-}
+import { StudentWithUser } from "@/types";
 
 interface StudentListProps {
-  students: Student[];
-  onAdd: (data: Omit<Student, "id">) => void;
-  onEdit: (id: string, data: Omit<Student, "id">) => void;
+  students: StudentWithUser[];
+  onAdd: (data: { studentId: string; name: string; roomId: string; userId: number }) => void;
+  onEdit: (id: string, data: { studentId?: string; name?: string; roomId?: string }) => void;
   onDelete: (id: string) => void;
 }
 
 export function StudentList({ students, onAdd, onEdit, onDelete }: StudentListProps) {
   const [search, setSearch] = useState("");
   const [formOpen, setFormOpen] = useState(false);
-  const [editTarget, setEditTarget] = useState<Student | null>(null);
+  const [editTarget, setEditTarget] = useState<StudentWithUser | null>(null);
 
   const filteredStudents = students.filter(
     (s) =>
@@ -40,7 +33,7 @@ export function StudentList({ students, onAdd, onEdit, onDelete }: StudentListPr
       s.studentId.toLowerCase().includes(search.toLowerCase())
   );
 
-  const handleEdit = (student: Student) => {
+  const handleEdit = (student: StudentWithUser) => {
     setEditTarget(student);
     setFormOpen(true);
   };
@@ -50,11 +43,11 @@ export function StudentList({ students, onAdd, onEdit, onDelete }: StudentListPr
     setEditTarget(null);
   };
 
-  const handleSubmit = (data: Omit<Student, "id">) => {
+  const handleSubmit = (data: { studentId: string; name: string; roomId: string; password?: string }) => {
     if (editTarget) {
-      onEdit(editTarget.id, data);
+      onEdit(editTarget.id, { studentId: data.studentId, name: data.name, roomId: data.roomId });
     } else {
-      onAdd(data);
+      onAdd({ studentId: data.studentId, name: data.name, roomId: data.roomId, userId: 0 });
     }
   };
 
@@ -82,7 +75,7 @@ export function StudentList({ students, onAdd, onEdit, onDelete }: StudentListPr
             <TableRow>
               <TableHead>Student ID</TableHead>
               <TableHead>Name</TableHead>
-              <TableHead>Room</TableHead>
+              <TableHead>Email</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
@@ -98,7 +91,7 @@ export function StudentList({ students, onAdd, onEdit, onDelete }: StudentListPr
                 <TableRow key={student.id}>
                   <TableCell className="font-mono">{student.studentId}</TableCell>
                   <TableCell>{student.name}</TableCell>
-                  <TableCell>{student.roomNumber}</TableCell>
+                  <TableCell>{student.user?.email || "-"}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <Button
@@ -132,9 +125,9 @@ export function StudentList({ students, onAdd, onEdit, onDelete }: StudentListPr
           editTarget
             ? {
                 studentId: editTarget.studentId,
-                password: editTarget.password,
+                password: "",
                 name: editTarget.name,
-                roomNumber: editTarget.roomNumber,
+                roomId: editTarget.roomId,
               }
             : undefined
         }

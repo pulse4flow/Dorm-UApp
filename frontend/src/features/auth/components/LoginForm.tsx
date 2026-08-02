@@ -46,7 +46,7 @@ export function LoginForm({ onLogin }: LoginFormProps) {
       localStorage.setItem("token", response.token);
 
       toast.success(`Logged in as ${role === "manager" ? "Dorm Manager" : "Student"}`);
-      router.replace("/");
+      window.location.href = "/";
     } catch (error: any) {
       toast.error(error.message || "Login failed");
     } finally {

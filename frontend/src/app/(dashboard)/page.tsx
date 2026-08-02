@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks";
 import {
   DashboardHeader,
@@ -9,34 +9,32 @@ import {
   QuickActions,
   ScoreHistoryList,
 } from "@/features/dashboard";
-import { ScoreHistory } from "@/types";
-
-const mockScoreLogs: ScoreHistory[] = [
-  {
-    id: "log1",
-    studentId: "STU-042",
-    studentName: "John Doe",
-    previousScore: 90,
-    newScore: 85,
-    reason: "Late noise complaint violation on May 15th",
-    changedBy: "Admin Manager",
-    createdAt: new Date(2026, 4, 16, 10, 0),
-  },
-  {
-    id: "log2",
-    studentId: "STU-042",
-    studentName: "John Doe",
-    previousScore: 85,
-    newScore: 82,
-    reason: "Missed room inspection appointment",
-    changedBy: "Admin Manager",
-    createdAt: new Date(2026, 4, 20, 14, 30),
-  },
-];
+import { ScoreHistory, RepairStats, NotificationCounts } from "@/types";
+import { BaseService } from "@/services/api-base";
 
 export default function DashboardPage() {
   const { user, isManager } = useAuth();
-  const [scoreLogs, setScoreLogs] = useState<ScoreHistory[]>(mockScoreLogs);
+
+  const { data: scoreLogs = [], isLoading: loadingHistory } = useQuery({
+    queryKey: ["scoreHistory", user?.id],
+    queryFn: () => BaseService.get<ScoreHistory[]>("/score/my-history"),
+    enabled: !!user,
+    staleTime: 30000,
+  });
+
+  const { data: stats = { total: 0, pending: 0, inProgress: 0, resolved: 0 }, isLoading: loadingStats } = useQuery({
+    queryKey: ["repairStats"],
+    queryFn: () => BaseService.get<RepairStats>("/repairs/stats"),
+    enabled: !!user,
+    staleTime: 30000,
+  });
+
+  const { data: counts = { total: 0, unread: 0, byType: { repair: 0, score: 0, system: 0 } }, isLoading: loadingCounts } = useQuery({
+    queryKey: ["notificationCounts", user?.id],
+    queryFn: () => BaseService.get<NotificationCounts>("/notifications/counts"),
+    enabled: !!user,
+    staleTime: 30000,
+  });
 
   if (!user) {
     return (
@@ -65,15 +63,15 @@ export default function DashboardPage() {
           <div className="space-y-4">
             <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
               <span className="text-sm">Maintenance Requests</span>
-              <span className="text-lg font-semibold">3</span>
+              <span className="text-lg font-semibold">{loadingStats ? "..." : stats.total}</span>
             </div>
             <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-              <span className="text-sm">Documents</span>
-              <span className="text-lg font-semibold">12</span>
+              <span className="text-sm">Pending</span>
+              <span className="text-lg font-semibold">{loadingStats ? "..." : stats.pending}</span>
             </div>
             <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-              <span className="text-sm">Days Remaining</span>
-              <span className="text-lg font-semibold">248</span>
+              <span className="text-sm">Notifications</span>
+              <span className="text-lg font-semibold">{loadingCounts ? "..." : counts.unread}</span>
             </div>
           </div>
         </div>

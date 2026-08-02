@@ -19,13 +19,13 @@ interface RequestCardProps {
 
 const statusVariant: Record<string, "default" | "secondary" | "outline"> = {
   pending: "secondary",
-  "in-progress": "default",
+  "in_progress": "default",
   resolved: "outline",
 };
 
 const statusLabel: Record<string, string> = {
   pending: "Pending",
-  "in-progress": "In Progress",
+  "in_progress": "In Progress",
   resolved: "Resolved",
 };
 
@@ -112,7 +112,7 @@ export function RequestCard({ request, onStatusChange, isManager }: RequestCardP
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="in-progress">In Progress</SelectItem>
+              <SelectItem value="in_progress">In Progress</SelectItem>
               <SelectItem value="resolved">Resolved</SelectItem>
             </SelectContent>
           </Select>

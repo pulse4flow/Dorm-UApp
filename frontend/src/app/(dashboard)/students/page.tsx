@@ -2,34 +2,47 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { StudentList } from "@/features/students";
-
-interface Student {
-  id: string;
-  studentId: string;
-  password: string;
-  name: string;
-  roomNumber: string;
-}
-
-const initialStudents: Student[] = [
-  { id: "1", studentId: "STU-001", password: "password123", name: "John Doe", roomNumber: "A-101" },
-  { id: "2", studentId: "STU-002", password: "password123", name: "Jane Smith", roomNumber: "A-102" },
-  { id: "3", studentId: "STU-003", password: "password123", name: "Bob Wilson", roomNumber: "B-201" },
-];
+import { StudentWithUser } from "@/types";
+import { BaseService, PaginatedResponse } from "@/services/api-base";
 
 export default function StudentsPage() {
   const { isManager, isLoading } = useAuth();
   const router = useRouter();
-  const [students, setStudents] = useState<Student[]>(initialStudents);
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    if (!isLoading && !isManager) {
-      router.replace("/");
-    }
-  }, [isManager, isLoading, router]);
+  const { data: students = [], isLoading: loadingStudents } = useQuery({
+    queryKey: ["students"],
+    queryFn: () => BaseService.get<PaginatedResponse<StudentWithUser>>("/students"),
+    select: (data) => data?.data || [],
+    enabled: isManager,
+    staleTime: 30000,
+  });
+
+  const createStudentMutation = useMutation({
+    mutationFn: (data: { studentId: string; name: string; roomId: string; userId: number }) =>
+      BaseService.post<StudentWithUser>("/students", data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["students"] });
+    },
+  });
+
+  const updateStudentMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: { studentId?: string; name?: string; roomId?: string } }) =>
+      BaseService.put<StudentWithUser>(`/students/${id}`, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["students"] });
+    },
+  });
+
+  const deleteStudentMutation = useMutation({
+    mutationFn: (id: string) => BaseService.delete(`/students/${id}`).then(() => null),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["students"] });
+    },
+  });
 
   if (isLoading) {
     return (
@@ -45,20 +58,16 @@ export default function StudentsPage() {
     return null;
   }
 
-  const handleAdd = (data: Omit<Student, "id">) => {
-    const newStudent: Student = {
-      ...data,
-      id: (students.length + 1).toString(),
-    };
-    setStudents([...students, newStudent]);
+  const handleAdd = (data: { studentId: string; name: string; roomId: string; userId: number }) => {
+    createStudentMutation.mutate(data);
   };
 
-  const handleEdit = (id: string, data: Omit<Student, "id">) => {
-    setStudents(students.map((s) => (s.id === id ? { ...data, id } : s)));
+  const handleEdit = (id: string, data: { studentId?: string; name?: string; roomId?: string }) => {
+    updateStudentMutation.mutate({ id, data });
   };
 
   const handleDelete = (id: string) => {
-    setStudents(students.filter((s) => s.id !== id));
+    deleteStudentMutation.mutate(id);
   };
 
   return (

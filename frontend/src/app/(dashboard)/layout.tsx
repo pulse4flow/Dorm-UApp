@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import {
   Home,
   Wrench,
-  FileText,
   LogOut,
   Menu,
   X,
@@ -18,19 +18,19 @@ import {
   Bell,
   Award,
   Users,
-  Megaphone,
 } from "lucide-react";
-import { Toaster } from "sonner";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks";
-import { Badge } from "@/components/ui/badge";
+
+const Toaster = dynamic(
+  () => import("sonner").then((mod) => mod.Toaster),
+  { ssr: false }
+);
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: Home },
   { href: "/students", label: "Students", icon: Users, managerOnly: true },
-  { href: "/announcements", label: "Announcements", icon: Megaphone },
   { href: "/repairs", label: "Maintenance", icon: Wrench },
-  { href: "/activities", label: "Activities", icon: Users },
   { href: "/score", label: "Score", icon: Award },
   { href: "/notifications", label: "Notifications", icon: Bell },
 ];
@@ -40,7 +40,6 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const router = useRouter();
   const pathname = usePathname();
   const { user, logout, isAuthenticated, isLoading } = useAuth();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -56,9 +55,9 @@ export default function DashboardLayout({
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
-      router.replace("/login");
+      window.location.href = "/login";
     }
-  }, [isAuthenticated, isLoading, router]);
+  }, [isAuthenticated, isLoading]);
 
   const toggleTheme = () => {
     const newTheme = theme === "light" ? "dark" : "light";
