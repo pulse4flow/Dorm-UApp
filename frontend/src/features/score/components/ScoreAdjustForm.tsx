@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Award, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
@@ -37,22 +36,37 @@ export function ScoreAdjustForm({
     handleSubmit,
     formState: { errors },
     reset,
-  } = useForm<ScoreAdjustment>({
+  } = useForm<{ score: number; reason: string }>({
     defaultValues: {
-      studentId,
       score: currentScore,
       reason: "",
     },
   });
 
-  const onFormSubmit = (data: ScoreAdjustment) => {
+  const onFormSubmit = (data: { score: number; reason: string }) => {
     if (data.score < 0 || data.score > 100) {
       toast.error("Score must be between 0 and 100");
       return;
     }
 
+    if (!data.reason || data.reason.trim() === "") {
+      toast.error("Reason is required to adjust score");
+      return;
+    }
+
     const diff = data.score - currentScore;
-    onSubmit(data);
+    if (diff === 0) {
+      toast.error("New score is the same as current score");
+      return;
+    }
+
+    // Send the score delta (diff) to backend adjust API
+    onSubmit({
+      studentId,
+      score: diff,
+      reason: data.reason.trim(),
+    });
+
     toast.success(
       `${studentName}'s score ${diff > 0 ? "increased" : "decreased"} to ${data.score}`
     );
@@ -74,7 +88,7 @@ export function ScoreAdjustForm({
               <div>
                 <p className="font-medium">{studentName}</p>
                 <p className="text-sm text-muted-foreground">
-                  Current Score: {currentScore}
+                  Current Score: {currentScore} / 100
                 </p>
               </div>
             </div>
@@ -104,10 +118,10 @@ export function ScoreAdjustForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="reason">Reason</Label>
+            <Label htmlFor="reason">Reason (Required)</Label>
             <Textarea
               id="reason"
-              {...register("reason", { required: "Reason is required" })}
+              {...register("reason", { required: "A reason is required to change dorm score" })}
               rows={3}
               placeholder="Explain why the score is being adjusted..."
             />

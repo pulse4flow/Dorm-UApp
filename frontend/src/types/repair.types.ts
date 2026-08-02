@@ -7,6 +7,7 @@ export interface Repair {
   description: string;
   status: RepairStatus;
   imageUrl?: string;
+  updatedBy?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -35,7 +36,7 @@ export type RepairCategory =
 
 export type RepairPriority = "low" | "medium" | "high" | "urgent";
 
-export type RepairStatus = "pending" | "in_progress" | "resolved";
+export type RepairStatus = "pending" | "in_progress" | "completed" | "rejected" | "resolved";
 
 export interface RepairFormData {
   roomNumber: string;
@@ -49,5 +50,6 @@ export interface RepairStats {
   total: number;
   pending: number;
   inProgress: number;
-  resolved: number;
+  completed: number;
+  rejected: number;
 }

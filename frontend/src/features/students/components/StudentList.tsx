@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Search, Pencil, Trash2, Plus, ShieldAlert, Award } from "lucide-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,7 +14,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { StudentForm } from "./StudentForm";
-import { StudentWithUser } from "@/types";
+import { ScoreAdjustForm } from "@/features/score";
+import { StudentWithUser, ScoreAdjustment } from "@/types";
+import { BaseService } from "@/services/api-base";
 
 interface StudentListProps {
   students: StudentWithUser[];
@@ -36,6 +39,18 @@ export function StudentList({ students, onAdd, onEdit, onDelete }: StudentListPr
   const [search, setSearch] = useState("");
   const [formOpen, setFormOpen] = useState(false);
   const [editTarget, setEditTarget] = useState<StudentWithUser | null>(null);
+  const [adjustTarget, setAdjustTarget] = useState<StudentWithUser | null>(null);
+
+  const queryClient = useQueryClient();
+
+  const adjustScoreMutation = useMutation({
+    mutationFn: (data: ScoreAdjustment) => BaseService.post("/score/adjust", data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["students"] });
+      queryClient.invalidateQueries({ queryKey: ["scoreHistoryByStudent"] });
+      setAdjustTarget(null);
+    },
+  });
 
   const filteredStudents = students.filter((s) => {
     const searchLower = search.toLowerCase();
@@ -144,18 +159,25 @@ export function StudentList({ students, onAdd, onEdit, onDelete }: StudentListPr
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        <span
-                          className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border ${getScoreBadgeClass(
-                            score
-                          )}`}
+                        <button
+                          type="button"
+                          onClick={() => setAdjustTarget(student)}
+                          title="Click to adjust dorm score with mandatory reason"
+                          className="group focus:outline-none"
                         >
-                          {score >= 80 ? (
-                            <Award className="w-3 h-3" />
-                          ) : (
-                            <ShieldAlert className="w-3 h-3" />
-                          )}
-                          {score} / 100
-                        </span>
+                          <span
+                            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border transition-transform group-hover:scale-105 ${getScoreBadgeClass(
+                              score
+                            )}`}
+                          >
+                            {score >= 80 ? (
+                              <Award className="w-3 h-3" />
+                            ) : (
+                              <ShieldAlert className="w-3 h-3" />
+                            )}
+                            {score} / 100
+                          </span>
+                        </button>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -165,6 +187,16 @@ export function StudentList({ students, onAdd, onEdit, onDelete }: StudentListPr
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setAdjustTarget(student)}
+                          title="Adjust Score"
+                          className="text-xs text-primary hover:text-primary hover:bg-primary/10"
+                        >
+                          <Award className="w-3.5 h-3.5 mr-1" />
+                          Adjust Score
+                        </Button>
                         <Button
                           variant="ghost"
                           size="icon"
@@ -208,6 +240,16 @@ export function StudentList({ students, onAdd, onEdit, onDelete }: StudentListPr
         existingIds={students.map((s) => s.studentId)}
         mode={editTarget ? "edit" : "create"}
       />
+
+      {adjustTarget && (
+        <ScoreAdjustForm
+          studentId={adjustTarget.id}
+          studentName={adjustTarget.name}
+          currentScore={adjustTarget.dormScore ?? 100}
+          onSubmit={(data) => adjustScoreMutation.mutate(data)}
+          onClose={() => setAdjustTarget(null)}
+        />
+      )}
     </div>
   );
 }

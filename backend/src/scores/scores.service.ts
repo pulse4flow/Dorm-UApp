@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { cacheService } from '../common/cache.service';
 
@@ -92,6 +92,10 @@ export class ScoresService {
   }
 
   async adjustScore(data: { studentId: string; score: number; reason: string; changedBy: string }) {
+    if (!data.reason || data.reason.trim() === '') {
+      throw new BadRequestException('A reason is required when adjusting a score');
+    }
+
     const student = await this.prisma.student.findUnique({
       where: { id: data.studentId },
     });
@@ -107,6 +111,9 @@ export class ScoresService {
       where: { id: data.studentId },
       data: { dormScore: newScore },
     });
+
+    // Invalidate cached history for this student so they see the update immediately
+    cacheService.invalidate(`scores:history:${data.studentId}`);
 
     return this.prisma.scoreHistory.create({
       data: {

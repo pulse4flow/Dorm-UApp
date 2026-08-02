@@ -28,10 +28,10 @@ const Toaster = dynamic(
 );
 
 const navItems = [
-  { href: "/", label: "Dashboard", icon: Home },
+  { href: "/", label: "Dashboard", icon: Home, studentOnly: true },
   { href: "/students", label: "Students", icon: Users, managerOnly: true },
   { href: "/repairs", label: "Maintenance", icon: Wrench },
-  { href: "/score", label: "Score", icon: Award },
+  { href: "/score", label: "Score", icon: Award, studentOnly: true },
   { href: "/notifications", label: "Notifications", icon: Bell },
 ];
 
@@ -59,6 +59,12 @@ export default function DashboardLayout({
     }
   }, [isAuthenticated, isLoading]);
 
+  useEffect(() => {
+    if (user && user.role === "manager" && pathname === "/") {
+      window.location.href = "/students";
+    }
+  }, [user, pathname]);
+
   const toggleTheme = () => {
     const newTheme = theme === "light" ? "dark" : "light";
     setTheme(newTheme);
@@ -85,9 +91,13 @@ export default function DashboardLayout({
 
   const isManager = user.role === "manager";
 
-  const filteredNavItems = navItems.filter(
-    (item) => !item.managerOnly || isManager
-  );
+  const filteredNavItems = navItems.filter((item) => {
+    if (isManager) {
+      return !item.studentOnly;
+    } else {
+      return !item.managerOnly;
+    }
+  });
 
   return (
     <div className="min-h-screen bg-background">
@@ -103,16 +113,24 @@ export default function DashboardLayout({
               <div>
                 <h2 className="text-sm font-semibold">Dormitory Portal</h2>
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <span>Room {user.room}</span>
-                  <span>•</span>
-                  <span className="flex items-center gap-1">
-                    {isManager ? (
-                      <Shield className="w-3 h-3" />
-                    ) : (
-                      <User className="w-3 h-3" />
-                    )}
-                    {isManager ? "Manager" : "Student"}
-                  </span>
+                  {isManager ? (
+                    <span className="flex items-center gap-1 font-medium text-foreground">
+                      <Shield className="w-3.5 h-3.5 text-primary" />
+                      {user.name || "Dorm Staff"}
+                      <span className="text-xs font-normal text-muted-foreground ml-1">
+                        (Dorm Staff)
+                      </span>
+                    </span>
+                  ) : (
+                    <>
+                      {user.room && <span>Room {user.room}</span>}
+                      {user.room && <span>•</span>}
+                      <span className="flex items-center gap-1">
+                        <User className="w-3 h-3" />
+                        Student
+                      </span>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -203,30 +221,34 @@ export default function DashboardLayout({
                     {item.label}
                   </Link>
                 ))}
-                <Link
-                  href="/profile"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg transition-colors ${
-                    isActive("/profile")
-                      ? "bg-primary text-primary-foreground"
-                      : "text-foreground hover:bg-muted"
-                  }`}
-                >
-                  <User className="w-4 h-4" />
-                  Profile
-                </Link>
-                <Link
-                  href="/room"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className={`flex items-center gap-2 px-4 py-2.5 rounded-lg transition-colors ${
-                    isActive("/room")
-                      ? "bg-primary text-primary-foreground"
-                      : "text-foreground hover:bg-muted"
-                  }`}
-                >
-                  <Building2 className="w-4 h-4" />
-                  My Room
-                </Link>
+                {!isManager && (
+                  <>
+                    <Link
+                      href="/profile"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className={`flex items-center gap-2 px-4 py-2.5 rounded-lg transition-colors ${
+                        isActive("/profile")
+                          ? "bg-primary text-primary-foreground"
+                          : "text-foreground hover:bg-muted"
+                      }`}
+                    >
+                      <User className="w-4 h-4" />
+                      Profile
+                    </Link>
+                    <Link
+                      href="/room"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className={`flex items-center gap-2 px-4 py-2.5 rounded-lg transition-colors ${
+                        isActive("/room")
+                          ? "bg-primary text-primary-foreground"
+                          : "text-foreground hover:bg-muted"
+                      }`}
+                    >
+                      <Building2 className="w-4 h-4" />
+                      My Room
+                    </Link>
+                  </>
+                )}
                 <button
                   onClick={() => {
                     handleLogout();

@@ -74,6 +74,7 @@ model Repair {
   description String
   status      String          @default("pending")
   imageUrl    String?
+  updatedBy   String?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

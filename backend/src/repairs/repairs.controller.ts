@@ -72,8 +72,10 @@ export class RepairsController {
       throw new Error('Student or Room not found');
     }
 
+    const { roomNumber, ...repairData } = data;
+
     return this.repairsService.create({
-      ...data,
+      ...repairData,
       studentId: student.id,
       roomId: room.id,
     });
@@ -82,8 +84,9 @@ export class RepairsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('manager')
   @Put(':id/status')
-  updateStatus(@Param('id') id: string, @Body('status') status: string) {
-    return this.repairsService.updateStatus(id, status);
+  updateStatus(@Param('id') id: string, @Body('status') status: string, @CurrentUser() user: any) {
+    const updatedBy = user?.name || user?.email || 'Manager';
+    return this.repairsService.updateStatus(id, status, updatedBy);
   }
 
   @UseGuards(JwtAuthGuard)

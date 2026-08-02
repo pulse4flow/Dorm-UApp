@@ -4,37 +4,65 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks";
 import { ScoreDisplay, ScoreAdjustForm } from "@/features/score";
-import { DormitoryScore, ScoreHistory, ScoreAdjustment } from "@/types";
-import { BaseService } from "@/services/api-base";
+import { DormitoryScore, ScoreHistory, ScoreAdjustment, StudentWithUser } from "@/types";
+import { BaseService, PaginatedResponse } from "@/services/api-base";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { TrendingUp, TrendingDown } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 
 export default function ScorePage() {
   const { user, isManager } = useAuth();
   const queryClient = useQueryClient();
+  const [selectedStudentId, setSelectedStudentId] = useState<string>("");
   const [showAdjustForm, setShowAdjustForm] = useState(false);
 
-  const { data: score, isLoading: loadingScore } = useQuery({
+  // Fetch list of students for manager student selector
+  const { data: students = [] } = useQuery({
+    queryKey: ["students"],
+    queryFn: () => BaseService.get<PaginatedResponse<StudentWithUser>>("/students?limit=200"),
+    select: (data) => data?.data || [],
+    enabled: !!user && isManager,
+  });
+
+  // Selected student object for manager view
+  const selectedStudent = students.find(
+    (s) => s.id === selectedStudentId || s.studentId === selectedStudentId
+  ) || students[0];
+
+  const targetStudentId = isManager ? selectedStudent?.id : undefined;
+
+  // Student own score (students only)
+  const { data: myScore } = useQuery({
     queryKey: ["myScore", user?.id],
     queryFn: () => BaseService.get<DormitoryScore>("/score/my-score"),
-    enabled: !!user,
+    enabled: !!user && !isManager,
     staleTime: 30000,
   });
 
-  const { data: history = [], isLoading: loadingHistory } = useQuery({
+  // Student own score history (students only)
+  const { data: myHistory = [] } = useQuery({
     queryKey: ["myScoreHistory", user?.id],
     queryFn: () => BaseService.get<ScoreHistory[]>("/score/my-history"),
-    enabled: !!user,
+    enabled: !!user && !isManager,
     staleTime: 30000,
+  });
+
+  // Manager score history for selected student
+  const { data: managerStudentHistory = [] } = useQuery({
+    queryKey: ["scoreHistoryByStudent", targetStudentId],
+    queryFn: () => BaseService.get<ScoreHistory[]>(`/score/history/${targetStudentId}`),
+    enabled: !!user && isManager && !!targetStudentId,
   });
 
   const adjustScoreMutation = useMutation({
     mutationFn: (data: ScoreAdjustment) => BaseService.post<ScoreHistory>("/score/adjust", data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["myScore", user?.id] });
-      queryClient.invalidateQueries({ queryKey: ["myScoreHistory", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["myScore"] });
+      queryClient.invalidateQueries({ queryKey: ["myScoreHistory"] });
+      queryClient.invalidateQueries({ queryKey: ["scoreHistoryByStudent"] });
+      queryClient.invalidateQueries({ queryKey: ["students"] });
       setShowAdjustForm(false);
     },
   });
@@ -70,26 +98,65 @@ export default function ScorePage() {
     );
   }
 
+  const currentScore: DormitoryScore | null = isManager
+    ? selectedStudent
+      ? {
+          id: selectedStudent.id,
+          studentId: selectedStudent.studentId,
+          score: selectedStudent.dormScore ?? 100,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        }
+      : null
+    : myScore || null;
+
+  const historyLogs: ScoreHistory[] = isManager ? managerStudentHistory : myHistory;
+
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <div className="mb-8">
         <h1 className="text-2xl font-bold">Dormitory Score</h1>
         <p className="text-muted-foreground mt-1">
-          {isManager ? "Manage student dormitory scores" : "View your dormitory score history"}
+          {isManager
+            ? "View and adjust student dormitory scores"
+            : "View your dormitory score and rating history"}
         </p>
       </div>
 
+      {isManager && students.length > 0 && (
+        <div className="mb-6 p-4 bg-muted/40 border border-border rounded-xl space-y-2">
+          <Label className="font-semibold text-sm">Select Student to Manage Score:</Label>
+          <Select
+            value={selectedStudent?.id || ""}
+            onValueChange={(val) => setSelectedStudentId(val)}
+          >
+            <SelectTrigger className="w-full sm:w-80 bg-background">
+              <SelectValue placeholder="Select a student..." />
+            </SelectTrigger>
+            <SelectContent>
+              {students.map((s) => (
+                <SelectItem key={s.id} value={s.id}>
+                  {s.studentId} - {s.name} ({s.room?.roomNumber || s.roomId})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
       <div className="mb-8">
-        {score && (
-          <ScoreDisplay
-            score={score}
-            showDetails={true}
-          />
+        {currentScore ? (
+          <ScoreDisplay score={currentScore} showDetails={true} />
+        ) : (
+          <div className="p-6 bg-card border rounded-xl text-center text-muted-foreground">
+            No score record available
+          </div>
         )}
-        {isManager && (
+
+        {isManager && selectedStudent && (
           <div className="mt-4">
             <Button onClick={() => setShowAdjustForm(true)}>
-              Adjust Score
+              Adjust {selectedStudent.name}&apos;s Score
             </Button>
           </div>
         )}
@@ -97,27 +164,27 @@ export default function ScorePage() {
 
       <Card>
         <CardContent className="p-6">
-          <h2 className="text-lg font-semibold mb-4">Score History</h2>
-          {history.length === 0 ? (
-            <p className="text-muted-foreground text-center py-8">No score changes yet</p>
+          <h2 className="text-lg font-semibold mb-4">
+            Score History {isManager && selectedStudent ? `for ${selectedStudent.name}` : ""}
+          </h2>
+          {historyLogs.length === 0 ? (
+            <p className="text-muted-foreground text-center py-8">No score changes logged yet</p>
           ) : (
             <div className="space-y-3">
-              {history.map((log) => (
+              {historyLogs.map((log) => (
                 <div
                   key={log.id}
                   className="p-4 bg-muted/50 rounded-lg border border-border"
                 >
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      {isManager && (
-                        <span className="font-medium text-sm">{log.studentName}</span>
-                      )}
+                      <span className="font-medium text-sm">{log.studentName}</span>
                       <Badge
                         variant="outline"
                         className={
                           log.newScore >= log.previousScore
-                            ? "text-green-600"
-                            : "text-destructive"
+                            ? "text-green-600 border-green-500/30 bg-green-500/10"
+                            : "text-destructive border-destructive/30 bg-destructive/10"
                         }
                       >
                         {log.newScore >= log.previousScore ? "+" : ""}
@@ -135,8 +202,12 @@ export default function ScorePage() {
                       {log.newScore}
                     </span>
                   </div>
-                  <p className="text-xs text-muted-foreground">{log.reason}</p>
-                  <p className="text-xs text-muted-foreground mt-1">By: {log.changedBy}</p>
+                  <p className="text-xs text-foreground/80 mt-1">
+                    <span className="font-medium text-muted-foreground">Reason:</span> {log.reason}
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Changed by: <span className="font-medium">{log.changedBy}</span>
+                  </p>
                 </div>
               ))}
             </div>
@@ -144,11 +215,11 @@ export default function ScorePage() {
         </CardContent>
       </Card>
 
-      {showAdjustForm && (
+      {showAdjustForm && selectedStudent && (
         <ScoreAdjustForm
-          studentId={String(user.id)}
-          studentName={user.name}
-          currentScore={score?.score || 100}
+          studentId={selectedStudent.id}
+          studentName={selectedStudent.name}
+          currentScore={selectedStudent.dormScore ?? 100}
           onSubmit={handleAdjustScore}
           onClose={() => setShowAdjustForm(false)}
         />

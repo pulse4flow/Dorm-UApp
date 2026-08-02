@@ -8,16 +8,30 @@ export class RepairsService {
 
   async findAll(query?: { status?: string; category?: string; page?: number; limit?: number; search?: string }) {
     const page = query?.page || 1;
-    const limit = query?.limit || 10;
+    const limit = query?.limit || 100;
     const skip = (page - 1) * limit;
 
     const where: any = {};
-    if (query?.status) where.status = query.status;
-    if (query?.category) where.category = query.category;
-    if (query?.search) {
+
+    if (query?.status && query.status !== 'all') {
+      if (query.status === 'completed' || query.status === 'resolved') {
+        where.status = { in: ['completed', 'resolved'] };
+      } else {
+        where.status = query.status;
+      }
+    }
+
+    if (query?.category && query.category !== 'all') {
+      where.category = query.category;
+    }
+
+    if (query?.search && query.search.trim() !== '') {
+      const searchTerm = query.search.trim();
       where.OR = [
-        { description: { contains: query.search, mode: 'insensitive' } },
-        { student: { name: { contains: query.search, mode: 'insensitive' } } },
+        { description: { contains: searchTerm } },
+        { student: { name: { contains: searchTerm } } },
+        { student: { studentId: { contains: searchTerm } } },
+        { room: { roomNumber: { contains: searchTerm } } },
       ];
     }
 
@@ -39,17 +53,18 @@ export class RepairsService {
   }
 
   async getStats() {
-    const cached = cacheService.get<{ total: number; pending: number; inProgress: number; resolved: number }>('repairs:stats');
+    const cached = cacheService.get<{ total: number; pending: number; inProgress: number; completed: number; rejected: number }>('repairs:stats');
     if (cached) return cached;
 
-    const [total, pending, inProgress, resolved] = await Promise.all([
+    const [total, pending, inProgress, completed, rejected] = await Promise.all([
       this.prisma.repair.count(),
       this.prisma.repair.count({ where: { status: 'pending' } }),
       this.prisma.repair.count({ where: { status: 'in_progress' } }),
-      this.prisma.repair.count({ where: { status: 'resolved' } }),
+      this.prisma.repair.count({ where: { status: { in: ['completed', 'resolved'] } } }),
+      this.prisma.repair.count({ where: { status: 'rejected' } }),
     ]);
 
-    const stats = { total, pending, inProgress, resolved };
+    const stats = { total, pending, inProgress, completed, rejected };
     cacheService.set('repairs:stats', stats, 30000);
     return stats;
   }
@@ -57,7 +72,10 @@ export class RepairsService {
   async findByStudent(studentId: string) {
     return this.prisma.repair.findMany({
       where: { studentId },
-      include: { room: { select: { id: true, roomNumber: true, building: true } } },
+      include: {
+        student: { select: { id: true, studentId: true, name: true } },
+        room: { select: { id: true, roomNumber: true, building: true } },
+      },
       orderBy: { createdAt: 'desc' },
     });
   }
@@ -87,6 +105,7 @@ export class RepairsService {
   }
 
   async create(data: { studentId: string; roomId: string; category: string; priority?: string; description: string; imageUrl?: string }) {
+    cacheService.invalidate('repairs:stats');
     return this.prisma.repair.create({
       data: {
         ...data,
@@ -96,15 +115,24 @@ export class RepairsService {
     });
   }
 
-  async updateStatus(id: string, status: string) {
+  async updateStatus(id: string, status: string, updatedBy?: string) {
     const repair = await this.prisma.repair.findUnique({ where: { id } });
     if (!repair) {
       throw new NotFoundException('Repair not found');
     }
 
+    cacheService.invalidate('repairs:stats');
+
     return this.prisma.repair.update({
       where: { id },
-      data: { status: status as any },
+      data: {
+        status: status as any,
+        updatedBy: updatedBy || null,
+      },
+      include: {
+        student: { select: { id: true, studentId: true, name: true } },
+        room: { select: { id: true, roomNumber: true, building: true } },
+      },
     });
   }
 

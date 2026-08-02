@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks";
 import {
@@ -15,37 +16,38 @@ import { BaseService } from "@/services/api-base";
 export default function DashboardPage() {
   const { user, isManager } = useAuth();
 
-  const { data: scoreLogs = [], isLoading: loadingHistory } = useQuery({
+  useEffect(() => {
+    if (user && isManager) {
+      window.location.href = "/students";
+    }
+  }, [user, isManager]);
+
+  const { data: scoreLogs = [] } = useQuery({
     queryKey: ["scoreHistory", user?.id],
     queryFn: () => BaseService.get<ScoreHistory[]>("/score/my-history"),
-    enabled: !!user,
+    enabled: !!user && !isManager,
     staleTime: 30000,
   });
 
   const { data: stats = { total: 0, pending: 0, inProgress: 0, resolved: 0 }, isLoading: loadingStats } = useQuery({
     queryKey: ["repairStats"],
     queryFn: () => BaseService.get<RepairStats>("/repairs/stats"),
-    enabled: !!user,
+    enabled: !!user && !isManager,
     staleTime: 30000,
   });
 
   const { data: counts = { total: 0, unread: 0, byType: { repair: 0, score: 0, system: 0 } }, isLoading: loadingCounts } = useQuery({
     queryKey: ["notificationCounts", user?.id],
     queryFn: () => BaseService.get<NotificationCounts>("/notifications/counts"),
-    enabled: !!user,
+    enabled: !!user && !isManager,
     staleTime: 30000,
   });
 
-  if (!user) {
+  if (!user || isManager) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="animate-pulse space-y-6">
           <div className="h-8 bg-muted rounded w-1/3" />
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-48 bg-muted rounded-xl" />
-            ))}
-          </div>
         </div>
       </div>
     );
