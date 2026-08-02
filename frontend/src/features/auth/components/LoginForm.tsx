@@ -78,11 +78,11 @@ export function LoginForm() {
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
-                  type="email"
+                  type="text"
                   {...register("email", {
-                    required: "Email is required",
+                    required: "Email or Student ID is required",
                   })}
-                  placeholder="student1@test.com"
+                  placeholder="student1@dorm.com or STU-101"
                   disabled={isLoading}
                 />
                 {errors.email && (
@@ -126,7 +126,7 @@ export function LoginForm() {
             <div className="mt-6 pt-6 border-t border-border text-center text-sm text-muted-foreground">
               <p className="mb-2">Demo Accounts:</p>
               <p className="font-mono text-xs">
-                Student: student1@test.com / password123
+                Student: student1@dorm.com or STU-101 / password123
               </p>
               <p className="font-mono text-xs">
                 Manager: admin@dorm.com / admin123

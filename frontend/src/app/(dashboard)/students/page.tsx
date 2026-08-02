@@ -1,7 +1,5 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { StudentList } from "@/features/students";
@@ -10,28 +8,38 @@ import { BaseService, PaginatedResponse } from "@/services/api-base";
 
 export default function StudentsPage() {
   const { isManager, isLoading } = useAuth();
-  const router = useRouter();
   const queryClient = useQueryClient();
 
-  const { data: students = [], isLoading: loadingStudents } = useQuery({
+  const { data: students = [] } = useQuery({
     queryKey: ["students"],
-    queryFn: () => BaseService.get<PaginatedResponse<StudentWithUser>>("/students"),
+    queryFn: () => BaseService.get<PaginatedResponse<StudentWithUser>>("/students?limit=200"),
     select: (data) => data?.data || [],
     enabled: isManager,
     staleTime: 30000,
   });
 
   const createStudentMutation = useMutation({
-    mutationFn: (data: { studentId: string; name: string; roomId: string; userId: number }) =>
-      BaseService.post<StudentWithUser>("/students", data),
+    mutationFn: (data: {
+      studentId: string;
+      name: string;
+      roomId: string;
+      dormScore?: number;
+      password?: string;
+      email?: string;
+    }) => BaseService.post<StudentWithUser>("/students", data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["students"] });
     },
   });
 
   const updateStudentMutation = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: { studentId?: string; name?: string; roomId?: string } }) =>
-      BaseService.put<StudentWithUser>(`/students/${id}`, data),
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: { studentId?: string; name?: string; roomId?: string; dormScore?: number };
+    }) => BaseService.put<StudentWithUser>(`/students/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["students"] });
     },
@@ -58,11 +66,21 @@ export default function StudentsPage() {
     return null;
   }
 
-  const handleAdd = (data: { studentId: string; name: string; roomId: string; userId: number }) => {
+  const handleAdd = (data: {
+    studentId: string;
+    name: string;
+    roomId: string;
+    dormScore?: number;
+    password?: string;
+    email?: string;
+  }) => {
     createStudentMutation.mutate(data);
   };
 
-  const handleEdit = (id: string, data: { studentId?: string; name?: string; roomId?: string }) => {
+  const handleEdit = (
+    id: string,
+    data: { studentId?: string; name?: string; roomId?: string; dormScore?: number }
+  ) => {
     updateStudentMutation.mutate({ id, data });
   };
 
@@ -75,7 +93,7 @@ export default function StudentsPage() {
       <div>
         <h1 className="text-2xl font-bold">Resident Management</h1>
         <p className="text-muted-foreground">
-          Manage resident IDs and accounts
+          Manage resident IDs, accounts, rooms, and dorm scores
         </p>
       </div>
 

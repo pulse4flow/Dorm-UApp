@@ -1,5 +1,5 @@
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -7,52 +7,13 @@ generator client {
   provider = "prisma-client-js"
 }
 
-enum UserRole {
-  student
-  manager
-}
-
-enum RoomStatus {
-  available
-  occupied
-  maintenance
-}
-
-enum RepairCategory {
-  plumbing
-  electrical
-  furniture
-  hvac
-  cleaning
-  security
-  other
-}
-
-enum RepairPriority {
-  low
-  medium
-  high
-  urgent
-}
-
-enum RepairStatus {
-  pending
-  in_progress
-  resolved
-}
-
-enum NotificationType {
-  repair
-  score
-  system
-}
-
 model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique
   password  String
   name      String?
-  role      UserRole @default(student)
+  role      String   @default("student")
+  type      String   @default("student")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -60,6 +21,7 @@ model User {
   notifications Notification[]
 
   @@index([role])
+  @@index([type])
 }
 
 model Student {
@@ -89,7 +51,7 @@ model Room {
   building   String
   floor      Int
   capacity   Int        @default(2)
-  status     RoomStatus @default(available)
+  status     String     @default("available")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -107,10 +69,10 @@ model Repair {
   id          String          @id @default(cuid())
   studentId   String
   roomId      String
-  category    RepairCategory
-  priority    RepairPriority  @default(medium)
+  category    String
+  priority    String          @default("medium")
   description String
-  status      RepairStatus    @default(pending)
+  status      String          @default("pending")
   imageUrl    String?
 
   createdAt DateTime @default(now())
@@ -132,7 +94,7 @@ model Notification {
   userId  Int
   title   String
   message String
-  type    NotificationType
+  type    String
   isRead  Boolean          @default(false)
   link    String?
 
