@@ -37,7 +37,7 @@ export function useAuth(): UseAuthReturn {
       setIsLoading(true);
 
       try {
-        const response = await AuthService.login({ userId: email, password, role: "student" });
+        const response = await AuthService.login({ userId: email, password });
 
         localStorage.setItem("user", JSON.stringify(response.user));
         localStorage.setItem("token", response.token);
