@@ -1,9 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
-import { LogIn, AlertCircle, Shield, User } from "lucide-react";
+import { LogIn, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,21 +15,13 @@ interface LoginForm {
   password: string;
 }
 
-type UserRole = "manager" | "student";
-
-interface LoginFormProps {
-  onLogin?: (role: UserRole) => void;
-}
-
-export function LoginForm({ onLogin }: LoginFormProps) {
-  const router = useRouter();
+export function LoginForm() {
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm<LoginForm>();
   const [isLoading, setIsLoading] = useState(false);
-  const [role, setRole] = useState<UserRole>("student");
 
   const onSubmit = async (data: LoginForm) => {
     setIsLoading(true);
@@ -39,13 +30,12 @@ export function LoginForm({ onLogin }: LoginFormProps) {
       const response = await AuthService.login({
         userId: data.email,
         password: data.password,
-        role,
       });
 
       localStorage.setItem("user", JSON.stringify(response.user));
       localStorage.setItem("token", response.token);
 
-      toast.success(`Logged in as ${role === "manager" ? "Dorm Manager" : "Student"}`);
+      toast.success("Logged in successfully");
       window.location.href = "/";
     } catch (error: any) {
       toast.error(error.message || "Login failed");
@@ -83,49 +73,16 @@ export function LoginForm({ onLogin }: LoginFormProps) {
 
         <Card className="shadow-lg">
           <CardContent className="p-8">
-            <div className="flex gap-3 mb-6">
-              <button
-                type="button"
-                onClick={() => setRole("student")}
-                className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg border transition-all ${
-                  role === "student"
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "bg-background text-muted-foreground border-border hover:border-primary/50"
-                }`}
-              >
-                <User className="w-5 h-5" />
-                Student
-              </button>
-              <button
-                type="button"
-                onClick={() => setRole("manager")}
-                className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-lg border transition-all ${
-                  role === "manager"
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "bg-background text-muted-foreground border-border hover:border-primary/50"
-                }`}
-              >
-                <Shield className="w-5 h-5" />
-                Dorm Manager
-              </button>
-            </div>
-
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="email">
-                  {role === "manager" ? "Email" : "Email"}
-                </Label>
+                <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
                   type="email"
                   {...register("email", {
                     required: "Email is required",
                   })}
-                  placeholder={
-                    role === "manager"
-                      ? "admin@dorm.com"
-                      : "student1@test.com"
-                  }
+                  placeholder="student1@test.com"
                   disabled={isLoading}
                 />
                 {errors.email && (
@@ -162,9 +119,7 @@ export function LoginForm({ onLogin }: LoginFormProps) {
                 size="lg"
               >
                 <LogIn className="w-5 h-5" />
-                {isLoading
-                  ? "Signing in..."
-                  : `Sign In as ${role === "manager" ? "Manager" : "Student"}`}
+                {isLoading ? "Signing in..." : "Sign In"}
               </Button>
             </form>
 

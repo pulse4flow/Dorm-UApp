@@ -1,16 +1,26 @@
 "use client";
 
-import { Wrench, FileText, Calendar, Users, Bell, Award } from "lucide-react";
+import { Wrench, Award, Users, Bell } from "lucide-react";
 import Link from "next/link";
 
 interface QuickActionsProps {
   isManager: boolean;
 }
 
+interface QuickAction {
+  href: string;
+  label: string;
+  description: string;
+  icon: typeof Wrench;
+  color: string;
+  iconColor: string;
+  managerOnly?: boolean;
+}
+
 export function QuickActions({ isManager }: QuickActionsProps) {
-  const actions = [
+  const actions: QuickAction[] = [
     {
-      href: "/dashboard/repairs",
+      href: "/repairs",
       label: "Maintenance",
       description: "Submit and track requests",
       icon: Wrench,
@@ -18,15 +28,7 @@ export function QuickActions({ isManager }: QuickActionsProps) {
       iconColor: "text-primary",
     },
     {
-      href: "/dashboard/announcements",
-      label: "Announcements",
-      description: "View latest updates",
-      icon: Bell,
-      color: "bg-yellow-500/10 group-hover:bg-yellow-500/20",
-      iconColor: "text-yellow-600 dark:text-yellow-400",
-    },
-    {
-      href: "/dashboard/score",
+      href: "/score",
       label: "Dorm Score",
       description: "View your score history",
       icon: Award,
@@ -34,28 +36,31 @@ export function QuickActions({ isManager }: QuickActionsProps) {
       iconColor: "text-green-600 dark:text-green-400",
     },
     {
-      href: "/dashboard/activities",
-      label: "Activities",
-      description: "Join campus activities",
-      icon: Users,
-      color: "bg-blue-500/10 group-hover:bg-blue-500/20",
-      iconColor: "text-blue-600 dark:text-blue-400",
-    },
-    {
-      href: "/dashboard/notifications",
+      href: "/notifications",
       label: "Notifications",
       description: "Check your alerts",
       icon: Bell,
       color: "bg-purple-500/10 group-hover:bg-purple-500/20",
       iconColor: "text-purple-600 dark:text-purple-400",
     },
+    {
+      href: "/students",
+      label: "Students",
+      description: "Manage dorm residents",
+      icon: Users,
+      color: "bg-blue-500/10 group-hover:bg-blue-500/20",
+      iconColor: "text-blue-600 dark:text-blue-400",
+      managerOnly: true,
+    },
   ];
+
+  const visibleActions = actions.filter((action) => !action.managerOnly || isManager);
 
   return (
     <div>
       <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {actions.map((action) => (
+        {visibleActions.map((action) => (
           <Link
             key={action.href}
             href={action.href}

@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import dynamic from "next/dynamic";
 import {
   Home,
   Wrench,
@@ -21,11 +20,6 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks";
-
-const Toaster = dynamic(
-  () => import("sonner").then((mod) => mod.Toaster),
-  { ssr: false }
-);
 
 const navItems = [
   { href: "/", label: "Dashboard", icon: Home },
@@ -91,8 +85,6 @@ export default function DashboardLayout({
 
   return (
     <div className="min-h-screen bg-background">
-      <Toaster position="top-center" />
-
       <header className="bg-card border-b border-border sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between h-16">

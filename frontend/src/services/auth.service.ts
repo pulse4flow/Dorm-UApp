@@ -1,10 +1,9 @@
 import { BaseService } from "./api-base";
-import { User, UserProfile, UserRole } from "@/types";
+import { User, UserProfile } from "@/types";
 
 export interface LoginCredentials {
   userId: string;
   password: string;
-  role: UserRole;
 }
 
 export interface LoginResponse {
