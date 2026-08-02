@@ -3,303 +3,167 @@ import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
-async function main() {
-  console.log('🌱 Seeding database...');
+const FIRST_NAMES = [
+  'Somchai', 'Somying', 'Wichai', 'Anan', 'Kanya', 'Chaiwat', 'Narin', 'Pimchanok',
+  'Thanawat', 'Sarin', 'Nattapong', 'Pitchaya', 'Kittisak', 'Siriporn', 'Warapon',
+  'Bhudis', 'Chutima', 'Danai', 'Ekkachai', 'Fonthip', 'Jakkrit', 'Kamonwan',
+  'Lalita', 'Manop', 'Nipon', 'Orathai', 'Prapas', 'Rattana', 'Sakda', 'Teerapat',
+  'Uraiwan', 'Viroj', 'Wanna', 'Yothin', 'Zulpha', 'Alex', 'Benjamin', 'Chloe',
+  'Daniel', 'Emily', 'Frank', 'Grace', 'Hannah', 'Isaac', 'Jessica', 'Kevin',
+  'Laura', 'Michael', 'Natalie', 'Oliver', 'Penelope', 'Quentin', 'Rachel', 'Samuel'
+];
 
-  // Hash passwords
+const LAST_NAMES = [
+  'Jaidee', 'Raksuk', 'Reandee', 'Srikhaev', 'Tongsuwan', 'Pattanakul', 'Wongsuwan',
+  'Boonmee', 'Chaimongkol', 'Saelim', 'Phungprasert', 'Charoensuk', 'Suksamran',
+  'Ratanaporn', 'Kaewmanee', 'Smith', 'Johnson', 'Williams', 'Brown', 'Jones',
+  'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez', 'Hernandez', 'Lopez',
+  'Gonzalez', 'Wilson', 'Anderson', 'Thomas', 'Taylor', 'Moore', 'Jackson', 'Martin'
+];
+
+async function main() {
+  console.log('🌱 Seeding database with 50+ student records...');
+
   const studentPassword = await bcrypt.hash('password123', 10);
   const adminPassword = await bcrypt.hash('admin123', 10);
-  const staffPassword = await bcrypt.hash('staff123', 10);
 
-  // Create Users
-  const student1 = await prisma.user.upsert({
-    where: { email: 'student1@test.com' },
-    update: {},
-    create: {
-      email: 'student1@test.com',
-      password: studentPassword,
-      name: 'สมชาย ใจดี',
-      role: 'student',
-    },
-  });
-
-  const student2 = await prisma.user.upsert({
-    where: { email: 'student2@test.com' },
-    update: {},
-    create: {
-      email: 'student2@test.com',
-      password: studentPassword,
-      name: 'สมหญิง รักสุข',
-      role: 'student',
-    },
-  });
-
-  const student3 = await prisma.user.upsert({
-    where: { email: 'student3@test.com' },
-    update: {},
-    create: {
-      email: 'student3@test.com',
-      password: studentPassword,
-      name: 'วิชัย เรียนดี',
-      role: 'student',
-    },
-  });
-
+  // 1. Create Admin Account
   const admin = await prisma.user.upsert({
     where: { email: 'admin@dorm.com' },
-    update: {},
+    update: { type: 'staff' },
     create: {
       email: 'admin@dorm.com',
       password: adminPassword,
-      name: '管理员 สมศักดิ์',
+      name: 'Manager Admin',
       role: 'manager',
+      type: 'staff',
     },
   });
+  console.log('✅ Admin user created:', admin.email);
 
-  const staff = await prisma.user.upsert({
-    where: { email: 'staff@dorm.com' },
-    update: {},
-    create: {
-      email: 'staff@dorm.com',
-      password: staffPassword,
-      name: 'เจ้าหน้าที่ สมหญิง',
-      role: 'manager',
-    },
-  });
+  // 2. Create Rooms
+  const buildings = ['A', 'B', 'C', 'D'];
+  const floors = [1, 2, 3, 4, 5];
+  const roomsPerFloor = 4;
+  const createdRooms: Array<{ id: string; roomNumber: string }> = [];
 
-  console.log('✅ Users created');
+  for (const building of buildings) {
+    for (const floor of floors) {
+      for (let r = 1; r <= roomsPerFloor; r++) {
+        const roomNum = `${building}-${floor}0${r}`;
+        const room = await prisma.room.upsert({
+          where: { roomNumber: roomNum },
+          update: {},
+          create: {
+            roomNumber: roomNum,
+            building,
+            floor,
+            capacity: 2,
+            status: r % 4 === 0 ? 'maintenance' : 'occupied',
+          },
+        });
+        createdRooms.push(room);
+      }
+    }
+  }
+  console.log(`✅ ${createdRooms.length} rooms created/updated`);
 
-  // Create Rooms
-  const roomA101 = await prisma.room.upsert({
-    where: { roomNumber: 'A-101' },
-    update: {},
-    create: {
-      roomNumber: 'A-101',
-      building: 'A',
-      floor: 1,
-      capacity: 2,
-      status: 'occupied',
-    },
-  });
+  // 3. Create 55 Student Records
+  const TOTAL_STUDENTS = 55;
+  for (let i = 1; i <= TOTAL_STUDENTS; i++) {
+    const fnIndex = (i - 1) % FIRST_NAMES.length;
+    const lnIndex = (i * 7) % LAST_NAMES.length;
+    const fullName = `${FIRST_NAMES[fnIndex]} ${LAST_NAMES[lnIndex]}`;
+    const email = `student${i}@dorm.com`;
+    const studentIdStr = `STU-${(100 + i).toString()}`;
+    const roomObj = createdRooms[(i - 1) % createdRooms.length];
 
-  const roomA102 = await prisma.room.upsert({
-    where: { roomNumber: 'A-102' },
-    update: {},
-    create: {
-      roomNumber: 'A-102',
-      building: 'A',
-      floor: 1,
-      capacity: 2,
-      status: 'occupied',
-    },
-  });
+    // Calculate deterministic dorm score between 50 and 100
+    // Give some variance so we have scores ranging from 0 to 100
+    let score = 100 - ((i * 13) % 45);
+    if (i === 7) score = 35; // One student with low score
+    if (i === 14) score = 0;  // One student with minimum score
 
-  const roomA201 = await prisma.room.upsert({
-    where: { roomNumber: 'A-201' },
-    update: {},
-    create: {
-      roomNumber: 'A-201',
-      building: 'A',
-      floor: 2,
-      capacity: 2,
-      status: 'available',
-    },
-  });
-
-  const roomA202 = await prisma.room.upsert({
-    where: { roomNumber: 'A-202' },
-    update: {},
-    create: {
-      roomNumber: 'A-202',
-      building: 'A',
-      floor: 2,
-      capacity: 2,
-      status: 'available',
-    },
-  });
-
-  const roomB101 = await prisma.room.upsert({
-    where: { roomNumber: 'B-101' },
-    update: {},
-    create: {
-      roomNumber: 'B-101',
-      building: 'B',
-      floor: 1,
-      capacity: 2,
-      status: 'occupied',
-    },
-  });
-
-  const roomB102 = await prisma.room.upsert({
-    where: { roomNumber: 'B-102' },
-    update: {},
-    create: {
-      roomNumber: 'B-102',
-      building: 'B',
-      floor: 1,
-      capacity: 2,
-      status: 'maintenance',
-    },
-  });
-
-  console.log('✅ Rooms created');
-
-  // Create Students
-  const student1Profile = await prisma.student.upsert({
-    where: { userId: student1.id },
-    update: {},
-    create: {
-      userId: student1.id,
-      studentId: 'STU-001',
-      name: 'สมชาย ใจดี',
-      roomId: roomA101.id,
-      dormScore: 95,
-    },
-  });
-
-  const student2Profile = await prisma.student.upsert({
-    where: { userId: student2.id },
-    update: {},
-    create: {
-      userId: student2.id,
-      studentId: 'STU-002',
-      name: 'สมหญิง รักสุข',
-      roomId: roomA102.id,
-      dormScore: 88,
-    },
-  });
-
-  const student3Profile = await prisma.student.upsert({
-    where: { userId: student3.id },
-    update: {},
-    create: {
-      userId: student3.id,
-      studentId: 'STU-003',
-      name: 'วิชัย เรียนดี',
-      roomId: roomB101.id,
-      dormScore: 100,
-    },
-  });
-
-  console.log('✅ Students created');
-
-  // Create Repairs
-  await prisma.repair.createMany({
-    data: [
-      {
-        studentId: student1Profile.id,
-        roomId: roomA101.id,
-        category: 'plumbing',
-        priority: 'high',
-        description: 'น้ำไม่ไหลในห้องน้ำ',
-        status: 'pending',
+    const user = await prisma.user.upsert({
+      where: { email },
+      update: {
+        type: 'student',
+        name: fullName,
       },
-      {
-        studentId: student2Profile.id,
-        roomId: roomA102.id,
-        category: 'electrical',
-        priority: 'medium',
-        description: 'ไฟดับเฉพาะปลั๊กข้างเตียง',
-        status: 'in_progress',
+      create: {
+        email,
+        password: studentPassword,
+        name: fullName,
+        role: 'student',
+        type: 'student',
       },
-      {
-        studentId: student3Profile.id,
-        roomId: roomB101.id,
-        category: 'furniture',
-        priority: 'low',
-        description: 'เก้าอี้ขาหัก',
-        status: 'resolved',
+    });
+
+    await prisma.student.upsert({
+      where: { userId: user.id },
+      update: {
+        studentId: studentIdStr,
+        name: fullName,
+        roomId: roomObj.id,
+        dormScore: score,
       },
-      {
-        studentId: student1Profile.id,
-        roomId: roomA101.id,
-        category: 'hvac',
-        priority: 'urgent',
-        description: 'แอร์ไม่เย็น มีเสียงดัง',
-        status: 'pending',
+      create: {
+        userId: user.id,
+        studentId: studentIdStr,
+        name: fullName,
+        roomId: roomObj.id,
+        dormScore: score,
       },
-      {
-        studentId: student2Profile.id,
-        roomId: roomA102.id,
-        category: 'cleaning',
-        priority: 'low',
-        description: 'ขอทำความสะอาดห้อง',
-        status: 'resolved',
-      },
-    ],
-    skipDuplicates: true,
+    });
+  }
+
+  console.log(`✅ ${TOTAL_STUDENTS} student records created with type="student"`);
+
+  // Create sample repair request and score history for first student
+  const sampleStudent = await prisma.student.findFirst({
+    include: { room: true },
   });
 
-  console.log('✅ Repairs created');
+  if (sampleStudent) {
+    await prisma.repair.createMany({
+      data: [
+        {
+          studentId: sampleStudent.id,
+          roomId: sampleStudent.roomId,
+          category: 'plumbing',
+          priority: 'high',
+          description: 'Bathroom sink leaking water',
+          status: 'pending',
+        },
+        {
+          studentId: sampleStudent.id,
+          roomId: sampleStudent.roomId,
+          category: 'electrical',
+          priority: 'medium',
+          description: 'Bedside outlet not functioning',
+          status: 'in_progress',
+        },
+      ],
+    });
 
-  // Create Score History
-  await prisma.scoreHistory.createMany({
-    data: [
-      {
-        studentId: student1Profile.id,
-        studentName: 'สมชาย ใจดี',
-        previousScore: 100,
-        newScore: 95,
-        reason: 'ทำความสะอาดห้องไม่เรียบร้อย',
-        changedBy: '管理员 สมศักดิ์',
-      },
-      {
-        studentId: student2Profile.id,
-        studentName: 'สมหญิง รักสุข',
-        previousScore: 100,
-        newScore: 88,
-        reason: 'ส่งเสียงดังหลัง 22:00 น.',
-        changedBy: '管理员 สมศักดิ์',
-      },
-      {
-        studentId: student3Profile.id,
-        studentName: 'วิชัย เรียนดี',
-        previousScore: 95,
-        newScore: 100,
-        reason: 'ช่วยทำความสะอาดพื้นที่ส่วนกลาง',
-        changedBy: 'เจ้าหน้าที่ สมหญิง',
-      },
-    ],
-    skipDuplicates: true,
-  });
+    await prisma.scoreHistory.createMany({
+      data: [
+        {
+          studentId: sampleStudent.id,
+          studentName: sampleStudent.name,
+          previousScore: 100,
+          newScore: sampleStudent.dormScore,
+          reason: 'Initial score evaluation',
+          changedBy: 'Manager Admin',
+        },
+      ],
+    });
+  }
 
-  console.log('✅ Score history created');
-
-  // Create Notifications
-  await prisma.notification.createMany({
-    data: [
-      {
-        userId: student1.id,
-        title: 'แจ้งซ่อมได้รับการตอบรับ',
-        message: 'แจ้งซ่อมน้ำไม่ไหลของคุณอยู่ระหว่างดำเนินการ',
-        type: 'repair',
-        link: '/repairs',
-      },
-      {
-        userId: student2.id,
-        title: 'คะแนนหอพักลดลง',
-        message: 'คะแนนหอพักของคุณลดลง 12 คะแนน',
-        type: 'score',
-        link: '/score',
-      },
-    ],
-    skipDuplicates: true,
-  });
-
-  console.log('✅ Notifications created');
-
-  console.log('\n🎉 Seeding completed!');
-  console.log('\n📋 Demo Accounts:');
-  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log('👨‍🎓 นักศึกษา:');
-  console.log('   student1@test.com / password123');
-  console.log('   student2@test.com / password123');
-  console.log('   student3@test.com / password123');
-  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-  console.log('👨‍💼 ผู้ดูแล:');
-  console.log('   admin@dorm.com / admin123');
-  console.log('   staff@dorm.com / staff123');
-  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  console.log('\n🎉 Seeding completed successfully!');
+  console.log(`Total students generated: ${TOTAL_STUDENTS}`);
+  console.log('Sample account: student1@dorm.com / password123');
+  console.log('Admin account: admin@dorm.com / admin123');
 }
 
 main()

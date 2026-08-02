@@ -10,7 +10,7 @@ interface QuickActionsProps {
 export function QuickActions({ isManager }: QuickActionsProps) {
   const actions = [
     {
-      href: "/dashboard/repairs",
+      href: "/repairs",
       label: "Maintenance",
       description: "Submit and track requests",
       icon: Wrench,
@@ -18,7 +18,7 @@ export function QuickActions({ isManager }: QuickActionsProps) {
       iconColor: "text-primary",
     },
     {
-      href: "/dashboard/announcements",
+      href: "/notifications",
       label: "Announcements",
       description: "View latest updates",
       icon: Bell,
@@ -26,7 +26,7 @@ export function QuickActions({ isManager }: QuickActionsProps) {
       iconColor: "text-yellow-600 dark:text-yellow-400",
     },
     {
-      href: "/dashboard/score",
+      href: "/score",
       label: "Dorm Score",
       description: "View your score history",
       icon: Award,
@@ -34,15 +34,15 @@ export function QuickActions({ isManager }: QuickActionsProps) {
       iconColor: "text-green-600 dark:text-green-400",
     },
     {
-      href: "/dashboard/activities",
-      label: "Activities",
-      description: "Join campus activities",
+      href: isManager ? "/students" : "/",
+      label: "Students",
+      description: isManager ? "Manage student records" : "Dorm community",
       icon: Users,
       color: "bg-blue-500/10 group-hover:bg-blue-500/20",
       iconColor: "text-blue-600 dark:text-blue-400",
     },
     {
-      href: "/dashboard/notifications",
+      href: "/notifications",
       label: "Notifications",
       description: "Check your alerts",
       icon: Bell,

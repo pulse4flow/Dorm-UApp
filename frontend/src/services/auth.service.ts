@@ -1,10 +1,12 @@
 import { BaseService } from "./api-base";
-import { User, UserProfile, UserRole } from "@/types";
+import { UserProfile, UserRole } from "@/types";
 
 export interface LoginCredentials {
-  userId: string;
+  studentId?: string;
+  userId?: string;
+  email?: string;
   password: string;
-  role: UserRole;
+  role?: UserRole;
 }
 
 export interface LoginResponse {
@@ -22,8 +24,9 @@ export interface RegisterData {
 
 export const AuthService = {
   login: async (credentials: LoginCredentials) => {
+    const identifier = credentials.studentId || credentials.userId || credentials.email || "";
     return BaseService.post<LoginResponse>("/auth/login", {
-      email: credentials.userId,
+      studentId: identifier,
       password: credentials.password,
     });
   },

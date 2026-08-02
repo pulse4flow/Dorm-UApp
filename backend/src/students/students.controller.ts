@@ -35,14 +35,34 @@ export class StudentsController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('manager')
   @Post()
-  create(@Body() data: { studentId: string; name: string; roomId: string; userId: number }) {
+  create(
+    @Body()
+    data: {
+      studentId: string;
+      name: string;
+      roomId: string;
+      userId?: number;
+      email?: string;
+      password?: string;
+      dormScore?: number;
+    },
+  ) {
     return this.studentsService.create(data);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('manager')
   @Put(':id')
-  update(@Param('id') id: string, @Body() data: { studentId?: string; name?: string; roomId?: string }) {
+  update(
+    @Param('id') id: string,
+    @Body()
+    data: {
+      studentId?: string;
+      name?: string;
+      roomId?: string;
+      dormScore?: number;
+    },
+  ) {
     return this.studentsService.update(id, data);
   }
 

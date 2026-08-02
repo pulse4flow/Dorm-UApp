@@ -9,7 +9,7 @@ interface UseAuthReturn {
   isLoading: boolean;
   isAuthenticated: boolean;
   isManager: boolean;
-  login: (email: string, password: string) => Promise<void>;
+  login: (studentIdOrEmail: string, password: string) => Promise<void>;
   logout: () => void;
   updateUser: (data: Partial<UserProfile>) => void;
 }
@@ -33,11 +33,11 @@ export function useAuth(): UseAuthReturn {
   }, []);
 
   const login = useCallback(
-    async (email: string, password: string) => {
+    async (studentIdOrEmail: string, password: string) => {
       setIsLoading(true);
 
       try {
-        const response = await AuthService.login({ userId: email, password, role: "student" });
+        const response = await AuthService.login({ studentId: studentIdOrEmail, password });
 
         localStorage.setItem("user", JSON.stringify(response.user));
         localStorage.setItem("token", response.token);
