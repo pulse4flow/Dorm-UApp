@@ -11,6 +11,7 @@ build/
 .env
 .env.local
 .env.*.local
+!database/.env
 
 # IDE
 .vscode/
@@ -28,14 +29,14 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# Prisma
-database/prisma/migrations/
-
 # Docker
 docker-compose.override.yml
 
 # TypeScript
 *.tsbuildinfo
+
+# Local SQLite database
+database/prisma/*.db*
 
 # Logs
 logs/

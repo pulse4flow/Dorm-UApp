@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { PrismaClient } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
@@ -183,6 +184,12 @@ async function main() {
 
   console.log('✅ Students created');
 
+  await prisma.$transaction([
+    prisma.notification.deleteMany(),
+    prisma.scoreHistory.deleteMany(),
+    prisma.repair.deleteMany(),
+  ]);
+
   // Create Repairs
   await prisma.repair.createMany({
     data: [
@@ -227,7 +234,6 @@ async function main() {
         status: 'resolved',
       },
     ],
-    skipDuplicates: true,
   });
 
   console.log('✅ Repairs created');
@@ -260,7 +266,6 @@ async function main() {
         changedBy: 'เจ้าหน้าที่ สมหญิง',
       },
     ],
-    skipDuplicates: true,
   });
 
   console.log('✅ Score history created');
@@ -283,7 +288,6 @@ async function main() {
         link: '/score',
       },
     ],
-    skipDuplicates: true,
   });
 
   console.log('✅ Notifications created');

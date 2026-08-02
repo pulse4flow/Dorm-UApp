@@ -1,5 +1,7 @@
 import type { NextConfig } from "next";
 
+/* eslint-disable @typescript-eslint/no-require-imports */
+
 const nextConfig: NextConfig = {
   reactCompiler: false,
 

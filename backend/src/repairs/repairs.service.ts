@@ -16,8 +16,8 @@ export class RepairsService {
     if (query?.category) where.category = query.category;
     if (query?.search) {
       where.OR = [
-        { description: { contains: query.search, mode: 'insensitive' } },
-        { student: { name: { contains: query.search, mode: 'insensitive' } } },
+        { description: { contains: query.search } },
+        { student: { name: { contains: query.search } } },
       ];
     }
 

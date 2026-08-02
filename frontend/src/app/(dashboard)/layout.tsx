@@ -17,6 +17,7 @@ import {
   Bell,
   Award,
   Users,
+  Megaphone,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks";
@@ -25,6 +26,7 @@ const navItems = [
   { href: "/", label: "Dashboard", icon: Home },
   { href: "/students", label: "Students", icon: Users, managerOnly: true },
   { href: "/repairs", label: "Maintenance", icon: Wrench },
+  { href: "/announcements", label: "Announcements", icon: Megaphone },
   { href: "/score", label: "Score", icon: Award },
   { href: "/notifications", label: "Notifications", icon: Bell },
 ];
@@ -42,6 +44,7 @@ export default function DashboardLayout({
   useEffect(() => {
     const savedTheme = localStorage.getItem("theme") as "light" | "dark" | null;
     if (savedTheme) {
+      // The stored theme is browser state and must be applied after hydration.
       setTheme(savedTheme);
       document.documentElement.classList.toggle("dark", savedTheme === "dark");
     }

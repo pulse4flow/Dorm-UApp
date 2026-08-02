@@ -5,3 +5,4 @@ export * from "./room.service";
 export * from "./repair.service";
 export * from "./score.service";
 export * from "./notification.service";
+export * from "./announcement.service";

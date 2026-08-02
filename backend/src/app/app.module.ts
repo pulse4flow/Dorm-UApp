@@ -10,6 +10,7 @@ import { RoomsModule } from '../rooms/rooms.module';
 import { RepairsModule } from '../repairs/repairs.module';
 import { ScoresModule } from '../scores/scores.module';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { AnnouncementsModule } from '../announcements/announcements.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
     RepairsModule,
     ScoresModule,
     NotificationsModule,
+    AnnouncementsModule,
   ],
   controllers: [AppController],
   providers: [AppService, EventsGateway],

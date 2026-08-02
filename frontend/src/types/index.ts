@@ -4,3 +4,4 @@ export * from "./room.types";
 export * from "./repair.types";
 export * from "./score.types";
 export * from "./notification.types";
+export * from "./announcement.types";
