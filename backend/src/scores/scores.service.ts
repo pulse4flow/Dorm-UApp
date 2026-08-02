@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { cacheService } from '../common/cache.service';
 
 @Injectable()
 export class ScoresService {
@@ -50,10 +51,17 @@ export class ScoresService {
       throw new NotFoundException('Student not found');
     }
 
-    return this.prisma.scoreHistory.findMany({
+    const cacheKey = `scores:history:${student.id}`;
+    const cached = cacheService.get<any[]>(cacheKey);
+    if (cached) return cached;
+
+    const history = await this.prisma.scoreHistory.findMany({
       where: { studentId: student.id },
       orderBy: { createdAt: 'desc' },
     });
+
+    cacheService.set(cacheKey, history, 30000); // Cache for 30 seconds
+    return history;
   }
 
   async getHistory(query?: { studentId?: string; page?: number; limit?: number }) {
@@ -137,6 +145,9 @@ export class ScoresService {
   }
 
   async getStats() {
+    const cached = cacheService.get<{ average: number; highest: number; lowest: number; total: number }>('scores:stats');
+    if (cached) return cached;
+
     const result = await this.prisma.student.aggregate({
       _avg: { dormScore: true },
       _max: { dormScore: true },
@@ -144,11 +155,14 @@ export class ScoresService {
       _count: { dormScore: true },
     });
 
-    return {
+    const stats = {
       average: result._avg.dormScore || 0,
       highest: result._max.dormScore || 0,
       lowest: result._min.dormScore || 0,
       total: result._count.dormScore || 0,
     };
+
+    cacheService.set('scores:stats', stats, 30000);
+    return stats;
   }
 }

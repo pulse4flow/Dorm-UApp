@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { cacheService } from '../common/cache.service';
 
 @Injectable()
 export class NotificationsService {
@@ -28,6 +29,10 @@ export class NotificationsService {
   }
 
   async getCounts(userId: number) {
+    const cacheKey = `notifications:counts:${userId}`;
+    const cached = cacheService.get<{ total: number; unread: number; byType: Record<string, number> }>(cacheKey);
+    if (cached) return cached;
+
     const where = { userId };
 
     const [total, unread] = await Promise.all([
@@ -46,7 +51,9 @@ export class NotificationsService {
       return acc;
     }, {} as Record<string, number>);
 
-    return { total, unread, byType: typeCounts };
+    const result = { total, unread, byType: typeCounts };
+    cacheService.set(cacheKey, result, 30000); // Cache for 30 seconds
+    return result;
   }
 
   async getUnreadCount(userId: number) {

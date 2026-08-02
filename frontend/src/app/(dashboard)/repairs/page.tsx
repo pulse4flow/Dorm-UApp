@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks";
 import { RequestCard, RequestForm, RepairStatsCard } from "@/features/repairs";
-import { BroadcastBox } from "@/features/announcements";
-import { RepairWithDetails, RepairFormData, RepairStats, AnnouncementWithAuthor } from "@/types";
+import { RepairWithDetails, RepairFormData, RepairStats } from "@/types";
+import { BaseService, PaginatedResponse } from "@/services/api-base";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -17,110 +18,54 @@ import {
 import { Plus, Search, Shield, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
-const mockRepairs: RepairWithDetails[] = [
-  {
-    id: "1",
-    studentId: "STU-042",
-    roomId: "room-1",
-    category: "plumbing",
-    priority: "high",
-    description: "Bathroom sink is leaking. Water drips constantly from the faucet.",
-    status: "in-progress",
-    createdAt: new Date(2026, 4, 23, 14, 30),
-    updatedAt: new Date(2026, 4, 23, 14, 30),
-    student: {
-      id: "STU-042",
-      studentId: "STU-042",
-      name: "John Doe",
-    },
-    room: {
-      id: "room-1",
-      roomNumber: "A-204",
-      building: "Building A",
-    },
-  },
-  {
-    id: "2",
-    studentId: "STU-001",
-    roomId: "room-2",
-    category: "electrical",
-    priority: "urgent",
-    description: "Light fixture in the bedroom is sparking. Safety hazard.",
-    status: "pending",
-    createdAt: new Date(2026, 4, 24, 9, 15),
-    updatedAt: new Date(2026, 4, 24, 9, 15),
-    student: {
-      id: "STU-001",
-      studentId: "STU-001",
-      name: "Alice Smith",
-    },
-    room: {
-      id: "room-2",
-      roomNumber: "B-105",
-      building: "Building B",
-    },
-  },
-];
-
-const mockAnnouncements: AnnouncementWithAuthor[] = [
-  {
-    id: "1",
-    title: "Scheduled Water Maintenance",
-    message: "Water will be shut off in Building A on May 28th from 9 AM to 12 PM.",
-    type: "warning",
-    createdBy: 1,
-    createdAt: new Date(2026, 4, 27, 8, 0),
-    updatedAt: new Date(2026, 4, 27, 8, 0),
-    author: { id: 1, name: "Admin Manager", email: "admin@dorm.com" },
-  },
-];
-
 export default function RepairsPage() {
   const { user, isManager } = useAuth();
+  const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState(false);
-  const [repairs, setRepairs] = useState<RepairWithDetails[]>(mockRepairs);
-  const [announcements, setAnnouncements] = useState<AnnouncementWithAuthor[]>(mockAnnouncements);
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterCategory, setFilterCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
 
+  const { data: repairs = [], isLoading: loadingRepairs } = useQuery({
+    queryKey: ["repairs"],
+    queryFn: () => BaseService.get<PaginatedResponse<RepairWithDetails>>("/repairs"),
+    select: (data) => data?.data || [],
+    enabled: !!user,
+    staleTime: 30000,
+  });
+
+  const createRepairMutation = useMutation({
+    mutationFn: (data: RepairFormData) => BaseService.post<RepairWithDetails>("/repairs", data),
+    onSuccess: (newRepair) => {
+      queryClient.setQueryData(["repairs"], (old: any) => {
+        if (!old) return [newRepair];
+        return [newRepair, ...old];
+      });
+      setShowForm(false);
+    },
+  });
+
+  const updateRepairStatusMutation = useMutation({
+    mutationFn: ({ id, status }: { id: string; status: string }) =>
+      BaseService.put(`/repairs/${id}/status`, { status }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["repairs"] });
+    },
+  });
+
   const stats: RepairStats = {
     total: repairs.length,
     pending: repairs.filter((r) => r.status === "pending").length,
-    inProgress: repairs.filter((r) => r.status === "in-progress").length,
+    inProgress: repairs.filter((r) => r.status === "in_progress").length,
     resolved: repairs.filter((r) => r.status === "resolved").length,
   };
 
   const handleSubmitRequest = (data: RepairFormData) => {
-    const userId = String(user?.id || "");
-    const newRepair: RepairWithDetails = {
-      id: Date.now().toString(),
-      studentId: userId,
-      roomId: "room-1",
-      ...data,
-      status: "pending",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-      student: {
-        id: userId,
-        studentId: userId,
-        name: user?.name || "",
-      },
-      room: {
-        id: "room-1",
-        roomNumber: data.roomNumber,
-        building: "Building A",
-      },
-    };
-    setRepairs([newRepair, ...repairs]);
+    createRepairMutation.mutate(data);
   };
 
-  const handleStatusChange = (id: string, status: "pending" | "in-progress" | "resolved") => {
-    setRepairs(repairs.map((r) => (r.id === id ? { ...r, status, updatedAt: new Date() } : r)));
-  };
-
-  const handleDismissAnnouncement = (id: string) => {
-    setAnnouncements(announcements.filter((a) => a.id !== id));
+  const handleStatusChange = (id: string, status: "pending" | "in_progress" | "resolved") => {
+    updateRepairStatusMutation.mutate({ id, status });
   };
 
   const filteredRepairs = repairs.filter((req) => {
@@ -193,7 +138,7 @@ export default function RepairsPage() {
             <SelectContent>
               <SelectItem value="all">All Status</SelectItem>
               <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="in-progress">In Progress</SelectItem>
+              <SelectItem value="in_progress">In Progress</SelectItem>
               <SelectItem value="resolved">Resolved</SelectItem>
             </SelectContent>
           </Select>

@@ -19,7 +19,7 @@ interface StudentFormData {
   studentId: string;
   password: string;
   name: string;
-  roomNumber: string;
+  roomId: string;
 }
 
 interface StudentFormProps {
@@ -52,7 +52,7 @@ export function StudentForm({
       studentId: "",
       password: "",
       name: "",
-      roomNumber: "",
+      roomId: "",
     },
   });
 
@@ -65,7 +65,7 @@ export function StudentForm({
           studentId: "",
           password: "",
           name: "",
-          roomNumber: "",
+          roomId: "",
         });
       }
     }
@@ -187,23 +187,19 @@ export function StudentForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="roomNumber">Room Number</Label>
+            <Label htmlFor="roomId">Room ID</Label>
             <Input
-              id="roomNumber"
+              id="roomId"
               placeholder="A-204"
               disabled={isLoading}
-              {...register("roomNumber", {
+              {...register("roomId", {
                 required: "Room number is required",
-                pattern: {
-                  value: /^[A-Z]-\d{3}$/,
-                  message: "Format: X-NNN (e.g., A-204)",
-                },
               })}
             />
-            {errors.roomNumber && (
+            {errors.roomId && (
               <div className="flex items-center gap-1 text-destructive">
                 <AlertCircle className="w-4 h-4" />
-                <span className="text-sm">{errors.roomNumber.message}</span>
+                <span className="text-sm">{errors.roomId.message}</span>
               </div>
             )}
           </div>

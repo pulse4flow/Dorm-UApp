@@ -1,78 +1,67 @@
 "use client";
 
 import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks";
 import { NotificationList } from "@/features/notifications";
 import { Notification, NotificationCounts } from "@/types";
+import { BaseService, PaginatedResponse } from "@/services/api-base";
 import { Card, CardContent } from "@/components/ui/card";
-import { Bell, Megaphone, Wrench, Award, Users } from "lucide-react";
-
-const mockNotifications: Notification[] = [
-  {
-    id: "1",
-    userId: 1,
-    title: "Maintenance Request Updated",
-    message: "Your plumbing repair request has been assigned to a technician.",
-    type: "repair",
-    isRead: false,
-    createdAt: new Date(2026, 5, 10, 14, 30),
-    updatedAt: new Date(2026, 5, 10, 14, 30),
-  },
-  {
-    id: "2",
-    userId: 1,
-    title: "New Announcement",
-    message: "Water maintenance scheduled for May 28th.",
-    type: "announcement",
-    isRead: true,
-    createdAt: new Date(2026, 5, 9, 10, 0),
-    updatedAt: new Date(2026, 5, 9, 10, 0),
-  },
-  {
-    id: "3",
-    userId: 1,
-    title: "Score Updated",
-    message: "Your dormitory score has been updated to 85.",
-    type: "score",
-    isRead: false,
-    createdAt: new Date(2026, 5, 8, 9, 0),
-    updatedAt: new Date(2026, 5, 8, 9, 0),
-  },
-];
-
-const mockCounts: NotificationCounts = {
-  total: 3,
-  unread: 2,
-  byType: {
-    announcement: 1,
-    repair: 1,
-    activity: 0,
-    score: 1,
-    system: 0,
-  },
-};
+import { Bell, Wrench, Award } from "lucide-react";
 
 export default function NotificationsPage() {
   const { user } = useAuth();
-  const [notifications, setNotifications] = useState<Notification[]>(mockNotifications);
-  const [counts] = useState<NotificationCounts>(mockCounts);
+  const queryClient = useQueryClient();
+
+  const { data: notifications = [], isLoading } = useQuery({
+    queryKey: ["notifications", user?.id],
+    queryFn: () => BaseService.get<PaginatedResponse<Notification>>("/notifications"),
+    select: (data) => data?.data || [],
+    enabled: !!user,
+    staleTime: 30000,
+  });
+
+  const { data: counts = { total: 0, unread: 0, byType: { repair: 0, score: 0, system: 0 } } } = useQuery({
+    queryKey: ["notificationCounts", user?.id],
+    queryFn: () => BaseService.get<NotificationCounts>("/notifications/counts"),
+    enabled: !!user,
+    staleTime: 30000,
+  });
+
+  const markAsReadMutation = useMutation({
+    mutationFn: (id: string) => BaseService.put(`/notifications/${id}/read`, {}),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notifications", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["notificationCounts", user?.id] });
+    },
+  });
+
+  const markAllAsReadMutation = useMutation({
+    mutationFn: () => BaseService.put("/notifications/read-all", {}),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notifications", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["notificationCounts", user?.id] });
+    },
+  });
+
+  const deleteNotificationMutation = useMutation({
+    mutationFn: (id: string) => BaseService.delete(`/notifications/${id}`).then(() => null),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["notifications", user?.id] });
+      queryClient.invalidateQueries({ queryKey: ["notificationCounts", user?.id] });
+    },
+  });
 
   const handleMarkAsRead = (id: string) => {
-    setNotifications(
-      notifications.map((n) =>
-        n.id === id ? { ...n, isRead: true, updatedAt: new Date() } : n
-      )
-    );
+    markAsReadMutation.mutate(id);
   };
 
   const handleMarkAllAsRead = () => {
-    setNotifications(
-      notifications.map((n) => ({ ...n, isRead: true, updatedAt: new Date() }))
-    );
+    markAllAsReadMutation.mutate();
   };
 
   const handleDelete = (id: string) => {
-    setNotifications(notifications.filter((n) => n.id !== id));
+    deleteNotificationMutation.mutate(id);
   };
 
   if (!user) {
@@ -93,7 +82,7 @@ export default function NotificationsPage() {
         <p className="text-muted-foreground mt-1">Stay updated with your alerts</p>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
         <Card>
           <CardContent className="p-4 text-center">
             <Bell className="w-6 h-6 mx-auto mb-2 text-muted-foreground" />
@@ -106,13 +95,6 @@ export default function NotificationsPage() {
             <Bell className="w-6 h-6 mx-auto mb-2 text-blue-600" />
             <p className="text-2xl font-bold text-blue-600">{counts.unread}</p>
             <p className="text-sm text-muted-foreground">Unread</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 text-center">
-            <Megaphone className="w-6 h-6 mx-auto mb-2 text-yellow-600" />
-            <p className="text-2xl font-bold">{counts.byType.announcement}</p>
-            <p className="text-sm text-muted-foreground">Announcements</p>
           </CardContent>
         </Card>
         <Card>

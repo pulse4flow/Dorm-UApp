@@ -1,23 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks";
 import { RoomInfo } from "@/features/room";
 import { Room } from "@/types";
+import { BaseService } from "@/services/api-base";
 
 export default function RoomPage() {
   const { user } = useAuth();
 
-  const mockRoom: Room = {
-    id: "room-1",
-    roomNumber: user?.room || "A-204",
-    building: "Building A",
-    floor: 2,
-    capacity: 2,
-    status: "occupied",
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  };
+  const { data: room, isLoading } = useQuery({
+    queryKey: ["room", user?.room],
+    queryFn: () => BaseService.get<Room>("/rooms/number/" + (user?.room || "A-201")),
+    enabled: !!user,
+    staleTime: 30000,
+  });
 
   if (!user) {
     return (
@@ -37,7 +34,7 @@ export default function RoomPage() {
         <p className="text-muted-foreground mt-1">View your room information and amenities</p>
       </div>
 
-      <RoomInfo room={mockRoom} />
+      {room && <RoomInfo room={room} />}
     </div>
   );
 }
