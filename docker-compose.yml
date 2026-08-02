@@ -31,7 +31,7 @@ services:
         condition: service_healthy
     volumes:
       - ./backend/src:/app/backend/src
-    command: pnpm --filter backend dev
+    command: sh -c "pnpm --filter backend prisma:migrate:prod && pnpm --filter backend prisma:seed && pnpm --filter backend dev"
 
   frontend:
     build:

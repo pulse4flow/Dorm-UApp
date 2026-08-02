@@ -13,6 +13,7 @@
     "lint:frontend": "pnpm --filter frontend lint",
     "db:generate": "pnpm --filter database prisma:generate",
     "db:migrate": "pnpm --filter database prisma:migrate",
+    "db:deploy": "pnpm --filter database prisma:migrate:prod",
     "db:seed": "pnpm --filter database prisma:seed",
     "db:studio": "pnpm --filter database prisma:studio",
     "db:reset": "pnpm --filter database prisma:reset",
@@ -22,7 +23,7 @@
     "docker:up": "docker-compose up -d",
     "docker:down": "docker-compose down",
     "docker:db": "docker-compose up -d postgres",
-    "setup": "pnpm install && pnpm db:migrate && pnpm db:seed"
+    "setup": "pnpm install && pnpm docker:db && pnpm db:migrate && pnpm db:seed"
   },
   "engines": {
     "node": ">=20"
