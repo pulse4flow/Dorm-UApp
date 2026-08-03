@@ -10,56 +10,108 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async login(identifier: string, password: string) {
+  async login(identifier: string, password: string, role?: string) {
+    const isManagerAttempt = role === 'manager' || (identifier && identifier.includes('@'));
+    const defaultErrMsg = isManagerAttempt ? 'Invalid email or password.' : 'Invalid Student ID or Password.';
+
     if (!identifier || !password) {
-      throw new UnauthorizedException('Invalid Student ID or Password.');
+      throw new UnauthorizedException(defaultErrMsg);
     }
 
     const trimmedIdentifier = identifier.trim();
-
-    // 1. First search by Student ID in Student table
-    const studentRecord = await this.prisma.student.findFirst({
-      where: {
-        OR: [
-          { studentId: trimmedIdentifier },
-          { studentId: trimmedIdentifier.toUpperCase() },
-          { studentId: `STU-${trimmedIdentifier}` },
-        ],
-      },
-      include: { user: true, room: true },
-    });
-
     let user: any = null;
 
-    if (studentRecord?.user) {
-      // Found via student lookup – reload the full user with nested student+room
-      user = await this.prisma.user.findUnique({
-        where: { id: studentRecord.user.id },
-        include: { student: { include: { room: true } } },
-      });
-    }
-
-    // 2. If not found by studentId, search by email in User table
-    if (!user) {
+    if (role === 'manager') {
       user = await this.prisma.user.findFirst({
         where: {
           OR: [
             { email: trimmedIdentifier.toLowerCase() },
             { email: trimmedIdentifier },
-            { name: trimmedIdentifier },
           ],
         },
         include: { student: { include: { room: true } } },
       });
-    }
+      if (!user || (user.role !== 'manager' && user.type !== 'manager' && user.type !== 'staff')) {
+        throw new UnauthorizedException('Invalid email or password.');
+      }
+    } else if (role === 'student') {
+      const studentRecord = await this.prisma.student.findFirst({
+        where: {
+          OR: [
+            { studentId: trimmedIdentifier },
+            { studentId: trimmedIdentifier.toUpperCase() },
+            { studentId: `STU-${trimmedIdentifier}` },
+          ],
+        },
+        include: { user: true, room: true },
+      });
 
-    if (!user) {
-      throw new UnauthorizedException('Invalid Student ID or Password.');
+      if (studentRecord?.user) {
+        user = await this.prisma.user.findUnique({
+          where: { id: studentRecord.user.id },
+          include: { student: { include: { room: true } } },
+        });
+      }
+
+      if (!user) {
+        user = await this.prisma.user.findFirst({
+          where: {
+            OR: [
+              { email: trimmedIdentifier.toLowerCase() },
+              { email: trimmedIdentifier },
+            ],
+            role: 'student',
+          },
+          include: { student: { include: { room: true } } },
+        });
+      }
+
+      if (!user) {
+        throw new UnauthorizedException('Invalid Student ID or Password.');
+      }
+    } else {
+      const studentRecord = await this.prisma.student.findFirst({
+        where: {
+          OR: [
+            { studentId: trimmedIdentifier },
+            { studentId: trimmedIdentifier.toUpperCase() },
+            { studentId: `STU-${trimmedIdentifier}` },
+          ],
+        },
+        include: { user: true, room: true },
+      });
+
+      if (studentRecord?.user) {
+        user = await this.prisma.user.findUnique({
+          where: { id: studentRecord.user.id },
+          include: { student: { include: { room: true } } },
+        });
+      }
+
+      if (!user) {
+        user = await this.prisma.user.findFirst({
+          where: {
+            OR: [
+              { email: trimmedIdentifier.toLowerCase() },
+              { email: trimmedIdentifier },
+              { name: trimmedIdentifier },
+            ],
+          },
+          include: { student: { include: { room: true } } },
+        });
+      }
+
+      if (!user) {
+        throw new UnauthorizedException(defaultErrMsg);
+      }
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid Student ID or Password.');
+      const errMsg = (user.role === 'manager' || user.type === 'manager' || isManagerAttempt)
+        ? 'Invalid email or password.'
+        : 'Invalid Student ID or Password.';
+      throw new UnauthorizedException(errMsg);
     }
 
     const token = this.generateToken(user);
@@ -92,7 +144,7 @@ export class AuthService {
         password: hashedPassword,
         name: data.name,
         role: (data.role as any) || 'student',
-        type: data.role === 'manager' ? 'staff' : 'student',
+        type: data.role === 'manager' ? 'manager' : 'student',
       },
     });
 
@@ -167,21 +219,28 @@ export class AuthService {
   }
 
   private generateToken(user: any) {
-    const payload = { sub: user.id, email: user.email, role: user.role, type: user.type || 'student' };
+    const isManager = user.role === 'manager' || user.type === 'manager' || user.type === 'staff';
+    const payload = {
+      sub: user.id,
+      email: user.email,
+      role: isManager ? 'manager' : 'student',
+      type: isManager ? 'manager' : 'student',
+    };
     return this.jwtService.sign(payload, { expiresIn: '48h' });
   }
 
   private formatUserProfile(user: any) {
     const studentObj = user.student;
+    const isManager = user.role === 'manager' || user.type === 'manager' || user.type === 'staff';
     return {
       id: user.id,
       email: user.email,
       name: user.name,
-      role: user.role,
-      type: user.type || (user.role === 'manager' ? 'staff' : 'student'),
-      studentId: studentObj?.studentId || null,
-      room: studentObj?.room?.roomNumber || studentObj?.roomId || null,
-      dormScore: studentObj?.dormScore ?? (user.role === 'manager' ? null : 100),
+      role: isManager ? 'manager' : (user.role || 'student'),
+      type: isManager ? 'manager' : (user.type || 'student'),
+      studentId: isManager ? null : (studentObj?.studentId || null),
+      room: isManager ? null : (studentObj?.room?.roomNumber || studentObj?.roomId || null),
+      dormScore: isManager ? null : (studentObj?.dormScore ?? 100),
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };

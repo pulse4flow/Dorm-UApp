@@ -33,6 +33,13 @@ export function NotificationList({
   onDelete,
   onDeleteAll,
 }: NotificationListProps) {
+  // Deduplicate notifications by ID or content fingerprint to prevent duplicate rendering
+  const uniqueNotifications = Array.from(
+    new Map(
+      notifications.map((n) => [n.id || `${n.title}-${n.message}-${n.createdAt}`, n])
+    ).values()
+  );
+
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat("en-US", {
       month: "short",
@@ -42,7 +49,7 @@ export function NotificationList({
     }).format(new Date(date));
   };
 
-  if (notifications.length === 0) {
+  if (uniqueNotifications.length === 0) {
     return (
       <Card>
         <CardContent className="p-8 text-center">
@@ -56,7 +63,7 @@ export function NotificationList({
     );
   }
 
-  const unreadCount = notifications.filter((n) => !n.isRead).length;
+  const unreadCount = uniqueNotifications.filter((n) => !n.isRead).length;
 
   return (
     <div className="space-y-4">
@@ -74,7 +81,7 @@ export function NotificationList({
       )}
 
       <div className="space-y-2">
-        {notifications.map((notification) => {
+        {uniqueNotifications.map((notification) => {
           const Icon = typeIcons[notification.type] || Bell;
 
           return (

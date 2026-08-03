@@ -12,7 +12,7 @@ export class AuthController {
   @Post('login')
   async login(@Body() loginDto: LoginDto) {
     const identifier = loginDto.studentId || loginDto.username || loginDto.email || '';
-    return this.authService.login(identifier, loginDto.password);
+    return this.authService.login(identifier, loginDto.password, loginDto.role);
   }
 
   @Post('register')

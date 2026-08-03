@@ -22,11 +22,18 @@ export default function DashboardPage() {
     }
   }, [user, isManager]);
 
+  const { data: myScoreData } = useQuery({
+    queryKey: ["myScore", user?.id],
+    queryFn: () => BaseService.get<{ score: number }>("/score/my-score"),
+    enabled: !!user && !isManager,
+    staleTime: 0,
+  });
+
   const { data: scoreLogs = [] } = useQuery({
     queryKey: ["scoreHistory", user?.id],
     queryFn: () => BaseService.get<ScoreHistory[]>("/score/my-history"),
     enabled: !!user && !isManager,
-    staleTime: 30000,
+    staleTime: 0,
   });
 
   const { data: stats = { total: 0, pending: 0, inProgress: 0, resolved: 0 }, isLoading: loadingStats } = useQuery({
@@ -53,13 +60,15 @@ export default function DashboardPage() {
     );
   }
 
+  const displayUser = myScoreData?.score !== undefined ? { ...user, dormScore: myScoreData.score } : user;
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
-      <DashboardHeader user={user} />
+      <DashboardHeader user={displayUser} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        <ProfileCard user={user} />
-        <ScoreDisplay user={user} />
+        <ProfileCard user={displayUser} />
+        <ScoreDisplay user={displayUser} />
         <div className="bg-card border border-border rounded-xl p-6">
           <h3 className="text-lg font-semibold mb-4">Quick Stats</h3>
           <div className="space-y-4">

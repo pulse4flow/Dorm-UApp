@@ -28,8 +28,20 @@ export function useAuth(): UseAuthReturn {
         localStorage.removeItem("user");
         localStorage.removeItem("token");
       }
+
+      // Sync latest user profile (including current dormScore) from backend
+      AuthService.getProfile()
+        .then((freshUser) => {
+          if (freshUser) {
+            localStorage.setItem("user", JSON.stringify(freshUser));
+            setUser(freshUser);
+          }
+        })
+        .catch(() => {})
+        .finally(() => setIsLoading(false));
+    } else {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }, []);
 
   const login = useCallback(
@@ -37,15 +49,7 @@ export function useAuth(): UseAuthReturn {
       setIsLoading(true);
 
       try {
-<<<<<<< HEAD
-<<<<<<< HEAD
-        const response = await AuthService.login({ studentId: studentIdOrEmail, password });
-=======
         const response = await AuthService.login({ userId: email, password });
->>>>>>> 93ce3134bddf883293fa3d8aa7e9d3a9e7e7df6c
-=======
-        const response = await AuthService.login({ userId: email, password });
->>>>>>> 6e40384813929841d2d789f0407655ec6f7a29df
 
         localStorage.setItem("user", JSON.stringify(response.user));
         localStorage.setItem("token", response.token);

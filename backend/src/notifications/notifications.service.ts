@@ -25,7 +25,12 @@ export class NotificationsService {
       this.prisma.notification.count({ where }),
     ]);
 
-    return { data: notifications, total, page, limit, totalPages: Math.ceil(total / limit) };
+    // De-duplicate items by id to ensure no duplicate items are returned
+    const uniqueNotifications = Array.from(
+      new Map(notifications.map((item) => [item.id, item])).values()
+    );
+
+    return { data: uniqueNotifications, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
   async getCounts(userId: number) {
@@ -85,6 +90,8 @@ export class NotificationsService {
       throw new NotFoundException('Notification not found');
     }
 
+    cacheService.invalidate(`notifications:counts:${notification.userId}`);
+
     return this.prisma.notification.update({
       where: { id },
       data: { isRead: true },
@@ -97,6 +104,8 @@ export class NotificationsService {
       data: { isRead: true },
     });
 
+    cacheService.invalidate(`notifications:counts:${userId}`);
+
     return { message: 'All notifications marked as read' };
   }
 
@@ -107,6 +116,23 @@ export class NotificationsService {
     type: string;
     link?: string;
   }) {
+    // Check if identical unread notification already exists to prevent duplicate inserts
+    const existing = await this.prisma.notification.findFirst({
+      where: {
+        userId: data.userId,
+        title: data.title,
+        message: data.message,
+        type: data.type as any,
+        isRead: false,
+      },
+    });
+
+    if (existing) {
+      return existing;
+    }
+
+    cacheService.invalidate(`notifications:counts:${data.userId}`);
+
     return this.prisma.notification.create({
       data: {
         ...data,

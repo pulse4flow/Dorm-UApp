@@ -33,12 +33,20 @@ export default function ScorePage() {
 
   const targetStudentId = isManager ? selectedStudent?.id : undefined;
 
+  // Manager: live current score for selected student (single source of truth)
+  const { data: managerStudentScore } = useQuery({
+    queryKey: ["studentScore", targetStudentId],
+    queryFn: () => BaseService.get<DormitoryScore>(`/score/student/${targetStudentId}`),
+    enabled: !!user && isManager && !!targetStudentId,
+    staleTime: 0,
+  });
+
   // Student own score (students only)
   const { data: myScore } = useQuery({
     queryKey: ["myScore", user?.id],
     queryFn: () => BaseService.get<DormitoryScore>("/score/my-score"),
     enabled: !!user && !isManager,
-    staleTime: 30000,
+    staleTime: 0,
   });
 
   // Student own score history (students only)
@@ -46,7 +54,7 @@ export default function ScorePage() {
     queryKey: ["myScoreHistory", user?.id],
     queryFn: () => BaseService.get<ScoreHistory[]>("/score/my-history"),
     enabled: !!user && !isManager,
-    staleTime: 30000,
+    staleTime: 0,
   });
 
   // Manager score history for selected student
@@ -54,15 +62,19 @@ export default function ScorePage() {
     queryKey: ["scoreHistoryByStudent", targetStudentId],
     queryFn: () => BaseService.get<ScoreHistory[]>(`/score/history/${targetStudentId}`),
     enabled: !!user && isManager && !!targetStudentId,
+    staleTime: 0,
   });
 
   const adjustScoreMutation = useMutation({
     mutationFn: (data: ScoreAdjustment) => BaseService.post<ScoreHistory>("/score/adjust", data),
     onSuccess: () => {
+      // Invalidate ALL score-related caches so every component refetches from DB
       queryClient.invalidateQueries({ queryKey: ["myScore"] });
       queryClient.invalidateQueries({ queryKey: ["myScoreHistory"] });
       queryClient.invalidateQueries({ queryKey: ["scoreHistoryByStudent"] });
+      queryClient.invalidateQueries({ queryKey: ["studentScore"] });
       queryClient.invalidateQueries({ queryKey: ["students"] });
+      queryClient.invalidateQueries({ queryKey: ["scoreHistory"] });
       setShowAdjustForm(false);
     },
   });
@@ -98,17 +110,15 @@ export default function ScorePage() {
     );
   }
 
+  // Single source of truth: always use the dedicated score API, never the student list cache
   const currentScore: DormitoryScore | null = isManager
-    ? selectedStudent
-      ? {
-          id: selectedStudent.id,
-          studentId: selectedStudent.studentId,
-          score: selectedStudent.dormScore ?? 100,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        }
-      : null
+    ? managerStudentScore || null
     : myScore || null;
+
+  // Use live score value as baseline for the adjust form
+  const liveCurrentScore = isManager
+    ? (managerStudentScore?.score ?? selectedStudent?.dormScore ?? 100)
+    : (myScore?.score ?? user?.dormScore ?? 100);
 
   const historyLogs: ScoreHistory[] = isManager ? managerStudentHistory : myHistory;
 
@@ -219,7 +229,7 @@ export default function ScorePage() {
         <ScoreAdjustForm
           studentId={selectedStudent.id}
           studentName={selectedStudent.name}
-          currentScore={selectedStudent.dormScore ?? 100}
+          currentScore={liveCurrentScore}
           onSubmit={handleAdjustScore}
           onClose={() => setShowAdjustForm(false)}
         />

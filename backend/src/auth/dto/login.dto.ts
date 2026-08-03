@@ -13,6 +13,10 @@ export class LoginDto {
   @IsString()
   username?: string;
 
+  @IsOptional()
+  @IsString()
+  role?: string;
+
   @IsString()
   @IsNotEmpty()
   password: string;

@@ -1,10 +1,14 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { cacheService } from '../common/cache.service';
 
 @Injectable()
 export class ScoresService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notificationsService: NotificationsService,
+  ) {}
 
   async getMyScore(userId: number) {
     const student = await this.prisma.student.findUnique({
@@ -51,17 +55,11 @@ export class ScoresService {
       throw new NotFoundException('Student not found');
     }
 
-    const cacheKey = `scores:history:${student.id}`;
-    const cached = cacheService.get<any[]>(cacheKey);
-    if (cached) return cached;
-
-    const history = await this.prisma.scoreHistory.findMany({
+    // Always fetch from DB (no cache) to ensure latest history after score adjustments
+    return this.prisma.scoreHistory.findMany({
       where: { studentId: student.id },
       orderBy: { createdAt: 'desc' },
     });
-
-    cacheService.set(cacheKey, history, 30000); // Cache for 30 seconds
-    return history;
   }
 
   async getHistory(query?: { studentId?: string; page?: number; limit?: number }) {
@@ -96,35 +94,58 @@ export class ScoresService {
       throw new BadRequestException('A reason is required when adjusting a score');
     }
 
-    const student = await this.prisma.student.findUnique({
-      where: { id: data.studentId },
+    const result = await this.prisma.$transaction(async (tx) => {
+      const student = await tx.student.findUnique({
+        where: { id: data.studentId },
+      });
+
+      if (!student) {
+        throw new NotFoundException('Student not found');
+      }
+
+      const previousScore = student.dormScore;
+      const newScore = Math.max(0, Math.min(100, previousScore + data.score));
+
+      await tx.student.update({
+        where: { id: data.studentId },
+        data: { dormScore: newScore },
+      });
+
+      const historyLog = await tx.scoreHistory.create({
+        data: {
+          studentId: data.studentId,
+          studentName: student.name,
+          previousScore,
+          newScore,
+          reason: data.reason,
+          changedBy: data.changedBy,
+        },
+      });
+
+      return historyLog;
     });
 
-    if (!student) {
-      throw new NotFoundException('Student not found');
+    // Invalidate cached history and stats so all clients see fresh data
+    cacheService.invalidate(`scores:history:${data.studentId}`);
+    cacheService.invalidate('scores:stats');
+
+    // Send single de-duplicated notification to target student user
+    const studentObj = await this.prisma.student.findUnique({
+      where: { id: data.studentId },
+      select: { userId: true },
+    });
+    if (studentObj?.userId) {
+      const changeText = data.score >= 0 ? `+${data.score}` : `${data.score}`;
+      await this.notificationsService.create({
+        userId: studentObj.userId,
+        title: 'Dorm Score Adjusted',
+        message: `Your dorm score was adjusted (${changeText}). Reason: ${data.reason}`,
+        type: 'score',
+        link: '/score',
+      });
     }
 
-    const previousScore = student.dormScore;
-    const newScore = Math.max(0, Math.min(100, previousScore + data.score));
-
-    await this.prisma.student.update({
-      where: { id: data.studentId },
-      data: { dormScore: newScore },
-    });
-
-    // Invalidate cached history for this student so they see the update immediately
-    cacheService.invalidate(`scores:history:${data.studentId}`);
-
-    return this.prisma.scoreHistory.create({
-      data: {
-        studentId: data.studentId,
-        studentName: student.name,
-        previousScore,
-        newScore,
-        reason: data.reason,
-        changedBy: data.changedBy,
-      },
-    });
+    return result;
   }
 
   async getAll(query?: { page?: number; limit?: number; sortBy?: string }) {

@@ -1,10 +1,14 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 import { cacheService } from '../common/cache.service';
 
 @Injectable()
 export class RepairsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private notificationsService: NotificationsService,
+  ) {}
 
   async findAll(query?: { status?: string; category?: string; page?: number; limit?: number; search?: string }) {
     const page = query?.page || 1;
@@ -116,24 +120,40 @@ export class RepairsService {
   }
 
   async updateStatus(id: string, status: string, updatedBy?: string) {
-    const repair = await this.prisma.repair.findUnique({ where: { id } });
+    const repair = await this.prisma.repair.findUnique({
+      where: { id },
+      include: { student: { select: { userId: true } } },
+    });
     if (!repair) {
       throw new NotFoundException('Repair not found');
     }
 
     cacheService.invalidate('repairs:stats');
 
-    return this.prisma.repair.update({
+    const updated = await this.prisma.repair.update({
       where: { id },
       data: {
         status: status as any,
         updatedBy: updatedBy || null,
       },
       include: {
-        student: { select: { id: true, studentId: true, name: true } },
+        student: { select: { id: true, studentId: true, name: true, userId: true } },
         room: { select: { id: true, roomNumber: true, building: true } },
       },
     });
+
+    if (updated.student?.userId) {
+      const statusText = status.replace('_', ' ').toUpperCase();
+      await this.notificationsService.create({
+        userId: updated.student.userId,
+        title: `Repair Request ${statusText}`,
+        message: `Your repair request for "${updated.description}" has been updated to ${status}.`,
+        type: 'repair',
+        link: '/repairs',
+      });
+    }
+
+    return updated;
   }
 
   async update(id: string, data: { category?: string; priority?: string; description?: string; status?: string; imageUrl?: string }) {

@@ -28,20 +28,6 @@ export function QuickActions({ isManager }: QuickActionsProps) {
       iconColor: "text-primary",
     },
     {
-<<<<<<< HEAD
-<<<<<<< HEAD
-      href: "/notifications",
-      label: "Announcements",
-      description: "View latest updates",
-      icon: Bell,
-      color: "bg-yellow-500/10 group-hover:bg-yellow-500/20",
-      iconColor: "text-yellow-600 dark:text-yellow-400",
-    },
-    {
-=======
->>>>>>> 93ce3134bddf883293fa3d8aa7e9d3a9e7e7df6c
-=======
->>>>>>> 6e40384813929841d2d789f0407655ec6f7a29df
       href: "/score",
       label: "Dorm Score",
       description: "View your score history",
@@ -50,20 +36,6 @@ export function QuickActions({ isManager }: QuickActionsProps) {
       iconColor: "text-green-600 dark:text-green-400",
     },
     {
-<<<<<<< HEAD
-<<<<<<< HEAD
-      href: isManager ? "/students" : "/",
-      label: "Students",
-      description: isManager ? "Manage student records" : "Dorm community",
-      icon: Users,
-      color: "bg-blue-500/10 group-hover:bg-blue-500/20",
-      iconColor: "text-blue-600 dark:text-blue-400",
-    },
-    {
-=======
->>>>>>> 93ce3134bddf883293fa3d8aa7e9d3a9e7e7df6c
-=======
->>>>>>> 6e40384813929841d2d789f0407655ec6f7a29df
       href: "/notifications",
       label: "Notifications",
       description: "Check your alerts",

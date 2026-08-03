@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { cacheService } from '../common/cache.service';
 
 @Injectable()
 export class StudentsService {
@@ -15,9 +16,9 @@ export class StudentsService {
     const where: Prisma.StudentWhereInput = query?.search
       ? {
           OR: [
-            { name: { contains: query.search, mode: 'insensitive' } },
-            { studentId: { contains: query.search, mode: 'insensitive' } },
-            { room: { roomNumber: { contains: query.search, mode: 'insensitive' } } },
+            { name: { contains: query.search } },
+            { studentId: { contains: query.search } },
+            { room: { roomNumber: { contains: query.search } } },
           ],
         }
       : {};
@@ -164,23 +165,46 @@ export class StudentsService {
     }
 
     const score = data.dormScore !== undefined ? Math.min(100, Math.max(0, Number(data.dormScore))) : undefined;
+    const isScoreChanged = score !== undefined && score !== student.dormScore;
 
-    const updated = await this.prisma.student.update({
-      where: { id },
-      data: {
-        ...(data.studentId && { studentId: data.studentId }),
-        ...(data.name && { name: data.name }),
-        ...(score !== undefined && { dormScore: score }),
-        roomId: targetRoomId,
-      },
-      include: { user: true, room: true },
+    const updated = await this.prisma.$transaction(async (tx) => {
+      const res = await tx.student.update({
+        where: { id },
+        data: {
+          ...(data.studentId && { studentId: data.studentId }),
+          ...(data.name && { name: data.name }),
+          ...(score !== undefined && { dormScore: score }),
+          roomId: targetRoomId,
+        },
+        include: { user: true, room: true },
+      });
+
+      if (data.name && res.userId) {
+        await tx.user.update({
+          where: { id: res.userId },
+          data: { name: data.name },
+        });
+      }
+
+      if (isScoreChanged && score !== undefined) {
+        await tx.scoreHistory.create({
+          data: {
+            studentId: id,
+            studentName: res.name,
+            previousScore: student.dormScore,
+            newScore: score,
+            reason: 'Manual score update via Student Management',
+            changedBy: 'Dorm Manager',
+          },
+        });
+      }
+
+      return res;
     });
 
-    if (data.name && updated.userId) {
-      await this.prisma.user.update({
-        where: { id: updated.userId },
-        data: { name: data.name },
-      });
+    if (isScoreChanged) {
+      cacheService.invalidate(`scores:history:${id}`);
+      cacheService.invalidate('scores:stats');
     }
 
     return updated;

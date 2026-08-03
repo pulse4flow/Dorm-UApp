@@ -1,24 +1,10 @@
 import { BaseService } from "./api-base";
-<<<<<<< HEAD
-<<<<<<< HEAD
-import { UserProfile, UserRole } from "@/types";
-=======
-import { User, UserProfile } from "@/types";
->>>>>>> 93ce3134bddf883293fa3d8aa7e9d3a9e7e7df6c
-=======
-import { User, UserProfile } from "@/types";
->>>>>>> 6e40384813929841d2d789f0407655ec6f7a29df
+import { User, UserProfile, UserRole } from "@/types";
 
 export interface LoginCredentials {
   userId: string;
   password: string;
-<<<<<<< HEAD
-<<<<<<< HEAD
   role?: UserRole;
-=======
->>>>>>> 93ce3134bddf883293fa3d8aa7e9d3a9e7e7df6c
-=======
->>>>>>> 6e40384813929841d2d789f0407655ec6f7a29df
 }
 
 export interface LoginResponse {
@@ -39,6 +25,7 @@ export const AuthService = {
     return BaseService.post<LoginResponse>("/auth/login", {
       email: credentials.userId,
       password: credentials.password,
+      role: credentials.role,
     });
   },
 
