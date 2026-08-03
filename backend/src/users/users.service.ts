@@ -51,6 +51,15 @@ export class UsersService {
       throw new BadRequestException('Role must be student or manager.');
     }
 
+    const studentId = (data.studentId || '').trim() || username;
+
+    if (data.role === 'student') {
+      const existingStudentId = await this.prisma.student.findUnique({ where: { studentId } });
+      if (existingStudentId) {
+        throw new ConflictException('Student ID already exists.');
+      }
+    }
+
     const hashedPassword = await bcrypt.hash(data.password, 10);
 
     const user = await this.prisma.user.create({
@@ -81,12 +90,6 @@ export class UsersService {
       }
 
       const score = data.dormScore !== undefined ? Math.min(100, Math.max(0, Number(data.dormScore))) : 100;
-
-      const studentId = (data.studentId || '').trim() || username;
-      const existingStudentId = await this.prisma.student.findUnique({ where: { studentId } });
-      if (existingStudentId) {
-        throw new ConflictException('Student ID already exists.');
-      }
 
       const student = await this.prisma.student.create({
         data: {
@@ -196,13 +199,18 @@ export class UsersService {
           },
         });
 
+        const studentDormScore =
+          data.dormScore !== undefined
+            ? Math.min(100, Math.max(0, Number(data.dormScore)))
+            : 100;
+
         await this.prisma.student.create({
           data: {
             userId: id,
             studentId,
             name: data.name || user.name || '',
             roomId: room.id,
-            dormScore: 100,
+            dormScore: studentDormScore,
           },
         });
       }
