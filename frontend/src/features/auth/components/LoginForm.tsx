@@ -1,9 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
-import { LogIn, AlertCircle, Shield, User } from "lucide-react";
+import { LogIn, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,22 +15,18 @@ interface LoginFormInputs {
   password: string;
 }
 
-type UserRole = "manager" | "student";
-
-interface LoginFormProps {
-  onLogin?: (role: UserRole) => void;
-}
-
-export function LoginForm({ onLogin }: LoginFormProps) {
-  const router = useRouter();
+export function LoginForm() {
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm<LoginFormInputs>();
   const [isLoading, setIsLoading] = useState(false);
+<<<<<<< HEAD
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [role, setRole] = useState<UserRole>("student");
+=======
+>>>>>>> 93ce3134bddf883293fa3d8aa7e9d3a9e7e7df6c
 
   const onSubmit = async (data: LoginFormInputs) => {
     setIsLoading(true);
@@ -41,12 +36,12 @@ export function LoginForm({ onLogin }: LoginFormProps) {
       const response = await AuthService.login({
         studentId: data.studentId,
         password: data.password,
-        role,
       });
 
       localStorage.setItem("user", JSON.stringify(response.user));
       localStorage.setItem("token", response.token);
 
+<<<<<<< HEAD
       toast.success(
         `Logged in successfully as ${
           response.user.role === "manager" ? "Dorm Manager" : "Student"
@@ -55,6 +50,9 @@ export function LoginForm({ onLogin }: LoginFormProps) {
       if (onLogin) {
         onLogin(response.user.role || role);
       }
+=======
+      toast.success("Logged in successfully");
+>>>>>>> 93ce3134bddf883293fa3d8aa7e9d3a9e7e7df6c
       window.location.href = "/";
     } catch (error: any) {
       const msg = error?.message || "Invalid Student ID or Password.";
@@ -94,6 +92,7 @@ export function LoginForm({ onLogin }: LoginFormProps) {
 
         <Card className="shadow-lg border-border">
           <CardContent className="p-8">
+<<<<<<< HEAD
             <div className="flex gap-3 mb-6">
               <button
                 type="button"
@@ -139,6 +138,11 @@ export function LoginForm({ onLogin }: LoginFormProps) {
                 <Label htmlFor="studentId" className="font-semibold">
                   {role === "manager" ? "Email / Staff ID" : "Student ID"}
                 </Label>
+=======
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+>>>>>>> 93ce3134bddf883293fa3d8aa7e9d3a9e7e7df6c
                 <Input
                   id="studentId"
                   type="text"
@@ -148,9 +152,13 @@ export function LoginForm({ onLogin }: LoginFormProps) {
                         ? "Email or Staff ID is required"
                         : "Student ID is required",
                   })}
+<<<<<<< HEAD
                   placeholder={
                     role === "manager" ? "admin@dorm.com" : "STU-101"
                   }
+=======
+                  placeholder="student1@test.com"
+>>>>>>> 93ce3134bddf883293fa3d8aa7e9d3a9e7e7df6c
                   disabled={isLoading}
                   autoComplete="username"
                   className="h-11"
@@ -192,7 +200,11 @@ export function LoginForm({ onLogin }: LoginFormProps) {
                 className="w-full h-11 text-base"
                 size="lg"
               >
+<<<<<<< HEAD
                 <LogIn className="w-5 h-5 mr-1" />
+=======
+                <LogIn className="w-5 h-5" />
+>>>>>>> 93ce3134bddf883293fa3d8aa7e9d3a9e7e7df6c
                 {isLoading ? "Signing in..." : "Sign In"}
               </Button>
             </form>

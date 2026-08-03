@@ -1,12 +1,19 @@
 import { BaseService } from "./api-base";
+<<<<<<< HEAD
 import { UserProfile, UserRole } from "@/types";
+=======
+import { User, UserProfile } from "@/types";
+>>>>>>> 93ce3134bddf883293fa3d8aa7e9d3a9e7e7df6c
 
 export interface LoginCredentials {
   studentId?: string;
   userId?: string;
   email?: string;
   password: string;
+<<<<<<< HEAD
   role?: UserRole;
+=======
+>>>>>>> 93ce3134bddf883293fa3d8aa7e9d3a9e7e7df6c
 }
 
 export interface LoginResponse {
