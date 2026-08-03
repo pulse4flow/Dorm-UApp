@@ -1,7 +1,6 @@
-import { Controller, Post, Get, Put, Body, UseGuards, Request } from '@nestjs/common';
+import { Controller, Post, Get, Put, Body, UseGuards, Request, ConflictException } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
-import { RegisterDto } from './dto/register.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { CurrentUser } from './decorators/current-user.decorator';
 
@@ -11,18 +10,28 @@ export class AuthController {
 
   @Post('login')
   async login(@Body() loginDto: LoginDto) {
-    const identifier = loginDto.studentId || loginDto.username || loginDto.email || '';
-    return this.authService.login(identifier, loginDto.password, loginDto.role);
+    const identifier = loginDto.username || loginDto.userId || loginDto.studentId || '';
+    return this.authService.login(identifier, loginDto.password);
   }
 
+  // Public self-registration is disabled — user creation is manager-only via /users
   @Post('register')
-  async register(@Body() registerDto: RegisterDto) {
-    return this.authService.register(registerDto);
+  async register() {
+    throw new ConflictException('Registration is disabled. Please ask a manager to create your account.');
   }
 
   @Post('logout')
   async logout() {
     return { message: 'Logged out successfully' };
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('change-password')
+  async changePassword(
+    @CurrentUser() user: any,
+    @Body() data: { oldPassword: string; newPassword: string },
+  ) {
+    return this.authService.changePassword(user.id, data.oldPassword, data.newPassword);
   }
 
   @UseGuards(JwtAuthGuard)
@@ -33,7 +42,7 @@ export class AuthController {
 
   @UseGuards(JwtAuthGuard)
   @Put('profile')
-  async updateProfile(@CurrentUser() user: any, @Body() data: { name?: string; email?: string }) {
+  async updateProfile(@CurrentUser() user: any, @Body() data: { name?: string }) {
     return this.authService.updateProfile(user.id, data);
   }
 

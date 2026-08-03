@@ -44,9 +44,9 @@ export function QuickActions({ isManager }: QuickActionsProps) {
       iconColor: "text-purple-600 dark:text-purple-400",
     },
     {
-      href: "/students",
-      label: "Students",
-      description: "Manage dorm residents",
+      href: "/users",
+      label: "Users",
+      description: "Manage user accounts",
       icon: Users,
       color: "bg-blue-500/10 group-hover:bg-blue-500/20",
       iconColor: "text-blue-600 dark:text-blue-400",

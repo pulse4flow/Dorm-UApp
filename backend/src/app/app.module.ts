@@ -6,6 +6,7 @@ import { EventsGateway } from './events.gateway';
 import { PrismaModule } from '../prisma/prisma.module';
 import { AuthModule } from '../auth/auth.module';
 import { StudentsModule } from '../students/students.module';
+import { UsersModule } from '../users/users.module';
 import { RoomsModule } from '../rooms/rooms.module';
 import { RepairsModule } from '../repairs/repairs.module';
 import { ScoresModule } from '../scores/scores.module';
@@ -17,6 +18,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
     PrismaModule,
     AuthModule,
     StudentsModule,
+    UsersModule,
     RoomsModule,
     RepairsModule,
     ScoresModule,

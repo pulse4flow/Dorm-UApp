@@ -13,7 +13,7 @@ export interface LoginResponse {
 }
 
 export interface RegisterData {
-  email: string;
+  username: string;
   password: string;
   name: string;
   studentId?: string;
@@ -23,7 +23,7 @@ export interface RegisterData {
 export const AuthService = {
   login: async (credentials: LoginCredentials) => {
     return BaseService.post<LoginResponse>("/auth/login", {
-      email: credentials.userId,
+      username: credentials.userId,
       password: credentials.password,
       role: credentials.role,
     });
@@ -31,6 +31,13 @@ export const AuthService = {
 
   register: async (data: RegisterData) => {
     return BaseService.post<LoginResponse>("/auth/register", data);
+  },
+
+  changePassword: async (oldPassword: string, newPassword: string) => {
+    return BaseService.post<{ message: string }>("/auth/change-password", {
+      oldPassword,
+      newPassword,
+    });
   },
 
   logout: async () => {

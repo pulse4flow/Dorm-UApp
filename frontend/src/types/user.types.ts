@@ -3,7 +3,7 @@ export type UserRole = "manager" | "student";
 
 export interface User {
   id: number | string;
-  email: string;
+  username: string;
   name: string;
   role?: UserRole;
   type?: UserType;
@@ -15,5 +15,8 @@ export interface UserProfile extends User {
   role: UserRole;
   type: UserType;
   room?: string;
+  roomId?: string;
+  roomNumber?: string;
+  studentId?: string | null;
   dormScore?: number;
 }

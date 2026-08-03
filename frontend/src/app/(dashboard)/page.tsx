@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks";
 import {
@@ -9,18 +8,13 @@ import {
   ScoreDisplay,
   QuickActions,
   ScoreHistoryList,
+  ManagerDashboard,
 } from "@/features/dashboard";
 import { ScoreHistory, RepairStats, NotificationCounts } from "@/types";
 import { BaseService } from "@/services/api-base";
 
 export default function DashboardPage() {
   const { user, isManager } = useAuth();
-
-  useEffect(() => {
-    if (user && isManager) {
-      window.location.href = "/students";
-    }
-  }, [user, isManager]);
 
   const { data: myScoreData } = useQuery({
     queryKey: ["myScore", user?.id],
@@ -50,12 +44,21 @@ export default function DashboardPage() {
     staleTime: 30000,
   });
 
-  if (!user || isManager) {
+  if (!user) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="animate-pulse space-y-6">
           <div className="h-8 bg-muted rounded w-1/3" />
         </div>
+      </div>
+    );
+  }
+
+  if (isManager) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <DashboardHeader user={user} />
+        <ManagerDashboard />
       </div>
     );
   }

@@ -77,7 +77,7 @@ export class StudentsService {
     name: string;
     roomId: string;
     userId?: number;
-    email?: string;
+    username?: string;
     password?: string;
     dormScore?: number;
   }) {
@@ -101,11 +101,11 @@ export class StudentsService {
 
     let userId = data.userId;
     if (!userId) {
-      const email = data.email || `${data.studentId.toLowerCase().replace(/[^a-z0-9]/g, '')}@dorm.com`;
-      const hashedPassword = await bcrypt.hash(data.password || 'password123', 10);
+      const username = data.username || data.studentId.toLowerCase().replace(/[^a-z0-9]/g, '');
+      const hashedPassword = await bcrypt.hash(data.password || username, 10);
       const user = await this.prisma.user.create({
         data: {
-          email,
+          username,
           password: hashedPassword,
           name: data.name,
           role: 'student',

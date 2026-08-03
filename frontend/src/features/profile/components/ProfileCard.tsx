@@ -4,7 +4,7 @@ import { UserProfile } from "@/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Shield, User, Mail, Building2, Calendar } from "lucide-react";
+import { Shield, User, KeyRound, Building2, Calendar } from "lucide-react";
 
 interface ProfileCardProps {
   user: UserProfile;
@@ -64,10 +64,10 @@ export function ProfileCard({ user, onEdit }: ProfileCardProps) {
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <Mail className="w-5 h-5 text-muted-foreground" />
+                <KeyRound className="w-5 h-5 text-muted-foreground" />
                 <div>
-                  <p className="text-sm text-muted-foreground">Email</p>
-                  <p className="font-medium">{user.email || "N/A"}</p>
+                  <p className="text-sm text-muted-foreground">User ID</p>
+                  <p className="font-medium">{user.username}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3">

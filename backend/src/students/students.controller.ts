@@ -1,8 +1,6 @@
-import { Controller, Get, Post, Put, Delete, Body, Param, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
 import { StudentsService } from './students.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
 
 @Controller('students')
 export class StudentsController {
@@ -30,46 +28,5 @@ export class StudentsController {
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.studentsService.findOne(id);
-  }
-
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('manager')
-  @Post()
-  create(
-    @Body()
-    data: {
-      studentId: string;
-      name: string;
-      roomId: string;
-      userId?: number;
-      email?: string;
-      password?: string;
-      dormScore?: number;
-    },
-  ) {
-    return this.studentsService.create(data);
-  }
-
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('manager')
-  @Put(':id')
-  update(
-    @Param('id') id: string,
-    @Body()
-    data: {
-      studentId?: string;
-      name?: string;
-      roomId?: string;
-      dormScore?: number;
-    },
-  ) {
-    return this.studentsService.update(id, data);
-  }
-
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('manager')
-  @Delete(':id')
-  delete(@Param('id') id: string) {
-    return this.studentsService.delete(id);
   }
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth } from "@/hooks";
-import { ProfileCard } from "@/features/profile";
+import { ProfileCard, ChangePassword } from "@/features/profile";
 import { UserProfile } from "@/types";
 
 export default function ProfilePage() {
@@ -25,7 +25,10 @@ export default function ProfilePage() {
         <p className="text-muted-foreground mt-1">Manage your account information</p>
       </div>
 
-      <ProfileCard user={user as UserProfile} />
+      <div className="space-y-6">
+        <ProfileCard user={user as UserProfile} />
+        <ChangePassword />
+      </div>
     </div>
   );
 }

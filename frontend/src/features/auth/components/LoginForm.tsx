@@ -2,70 +2,44 @@
 
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { LogIn, AlertCircle, User, Shield } from "lucide-react";
+import { LogIn, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PasswordInput } from "@/components/ui/password-input";
 import { Card, CardContent } from "@/components/ui/card";
 import { AuthService } from "@/services/auth.service";
-import { UserRole } from "@/types";
 
-interface LoginFormInputs {
-  identifier: string;
+interface LoginForm {
+  userId: string;
   password: string;
 }
 
 export function LoginForm() {
-  const [activeTab, setActiveTab] = useState<UserRole>("student");
   const {
     register,
     handleSubmit,
     formState: { errors },
-    reset,
-  } = useForm<LoginFormInputs>();
+  } = useForm<LoginForm>();
   const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const handleTabChange = (role: UserRole) => {
-    setActiveTab(role);
-    setErrorMessage(null);
-    reset();
-  };
-
-  const onSubmit = async (data: LoginFormInputs) => {
+  const onSubmit = async (data: LoginForm) => {
     setIsLoading(true);
-    setErrorMessage(null);
 
     try {
       const response = await AuthService.login({
-        userId: data.identifier,
+        userId: data.userId,
         password: data.password,
-        role: activeTab,
       });
 
       localStorage.setItem("user", JSON.stringify(response.user));
       localStorage.setItem("token", response.token);
 
-      const isManager = response.user.role === "manager" || response.user.type === "staff" || (response.user as any).type === "manager";
-
-      toast.success(
-        `Logged in successfully as ${isManager ? "Dorm Manager" : "Student"}`
-      );
-
-      if (isManager) {
-        window.location.href = "/students";
-      } else {
-        window.location.href = "/";
-      }
+      toast.success("Logged in successfully");
+      window.location.href = "/";
     } catch (error: any) {
-      const fallbackMsg =
-        activeTab === "manager"
-          ? "Invalid email or password."
-          : "Invalid Student ID or Password.";
-      const msg = error.message || fallbackMsg;
-      setErrorMessage(msg);
-      toast.error(msg);
+      toast.error(error.message || "Login failed");
     } finally {
       setIsLoading(false);
     }
@@ -75,7 +49,7 @@ export function LoginForm() {
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/10 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-primary text-primary-foreground rounded-2xl mb-4 shadow-sm">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-primary text-primary-foreground rounded-2xl mb-4">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="24"
@@ -95,79 +69,37 @@ export function LoginForm() {
             </svg>
           </div>
           <h1 className="text-2xl font-bold mb-2">Dormitory Portal</h1>
-          <p className="text-muted-foreground">Sign in to access your account</p>
+          <p className="text-muted-foreground">Sign in with your User ID and password</p>
         </div>
 
-        <Card className="shadow-lg border border-border">
+        <Card className="shadow-lg">
           <CardContent className="p-8">
-            <div className="flex gap-3 mb-6 p-1 bg-muted/40 rounded-xl">
-              <button
-                type="button"
-                onClick={() => handleTabChange("student")}
-                className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                  activeTab === "student"
-                    ? "bg-background text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <User className="w-4 h-4" />
-                Student
-              </button>
-              <button
-                type="button"
-                onClick={() => handleTabChange("manager")}
-                className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                  activeTab === "manager"
-                    ? "bg-background text-foreground shadow-sm"
-                    : "text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                <Shield className="w-4 h-4 text-primary" />
-                Manager
-              </button>
-            </div>
-
-            {errorMessage && (
-              <div className="mb-5 p-3.5 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive flex items-center gap-2 text-sm font-medium">
-                <AlertCircle className="w-5 h-5 shrink-0" />
-                <span>{errorMessage}</span>
-              </div>
-            )}
-
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
               <div className="space-y-2">
-                <Label htmlFor="identifier">
-                  {activeTab === "manager" ? "Email Address" : "Student ID"}
-                </Label>
+                <Label htmlFor="userId">User ID</Label>
                 <Input
-                  id="identifier"
-                  type={activeTab === "manager" ? "email" : "text"}
-                  {...register("identifier", {
-                    required:
-                      activeTab === "manager"
-                        ? "Email is required"
-                        : "Student ID is required",
+                  id="userId"
+                  type="text"
+                  autoComplete="username"
+                  {...register("userId", {
+                    required: "User ID is required",
                   })}
-                  placeholder={
-                    activeTab === "manager"
-                      ? "admin@dorm.com"
-                      : "STU-101"
-                  }
+                  placeholder="student101"
                   disabled={isLoading}
                 />
-                {errors.identifier && (
+                {errors.userId && (
                   <div className="flex items-center gap-1 text-destructive">
                     <AlertCircle className="w-4 h-4" />
-                    <span className="text-sm">{errors.identifier.message}</span>
+                    <span className="text-sm">{errors.userId.message}</span>
                   </div>
                 )}
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="password">Password</Label>
-                <Input
+                <PasswordInput
                   id="password"
-                  type="password"
+                  autoComplete="current-password"
                   {...register("password", {
                     required: "Password is required",
                   })}
@@ -188,24 +120,18 @@ export function LoginForm() {
                 className="w-full"
                 size="lg"
               >
-                <LogIn className="w-5 h-5 mr-1" />
-                {isLoading
-                  ? "Signing in..."
-                  : activeTab === "manager"
-                  ? "Sign In as Manager"
-                  : "Sign In as Student"}
+                <LogIn className="w-5 h-5" />
+                {isLoading ? "Signing in..." : "Sign In"}
               </Button>
             </form>
 
-            <div className="mt-6 pt-6 border-t border-border text-center text-sm text-muted-foreground space-y-1">
-              <p className="font-semibold text-xs text-foreground uppercase tracking-wider mb-2">
-                Demo Accounts
+            <div className="mt-6 pt-6 border-t border-border text-center text-sm text-muted-foreground">
+              <p className="mb-2">Demo Accounts:</p>
+              <p className="font-mono text-xs">
+                Student: student101 / student101
               </p>
               <p className="font-mono text-xs">
-                Student: <span className="font-semibold text-foreground">STU-101</span> / <span className="font-semibold text-foreground">password123</span>
-              </p>
-              <p className="font-mono text-xs">
-                Manager: <span className="font-semibold text-foreground">admin@dorm.com</span> / <span className="font-semibold text-foreground">admin123</span>
+                Manager: manager01 / manager01
               </p>
             </div>
           </CardContent>
