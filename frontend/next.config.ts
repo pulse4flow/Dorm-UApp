@@ -9,6 +9,16 @@ const nextConfig: NextConfig = {
   // Output standalone for production deployments
   output: "standalone",
 
+  // Proxy API calls to the backend (keeps the browser same-origin, works behind tunnels)
+  async rewrites() {
+    return [
+      {
+        source: "/api/:path*",
+        destination: `${process.env.NEXT_PUBLIC_API_PROXY || "http://127.0.0.1:3001"}/:path*`,
+      },
+    ];
+  },
+
   // Compression
   compress: true,
 
