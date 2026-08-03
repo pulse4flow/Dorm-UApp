@@ -10,8 +10,8 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { AuthService } from "@/services/auth.service";
 
-interface LoginFormInputs {
-  studentId: string;
+interface LoginForm {
+  email: string;
   password: string;
 }
 
@@ -20,27 +20,30 @@ export function LoginForm() {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<LoginFormInputs>();
+  } = useForm<LoginForm>();
   const [isLoading, setIsLoading] = useState(false);
+<<<<<<< HEAD
 <<<<<<< HEAD
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [role, setRole] = useState<UserRole>("student");
 =======
 >>>>>>> 93ce3134bddf883293fa3d8aa7e9d3a9e7e7df6c
+=======
+>>>>>>> 6e40384813929841d2d789f0407655ec6f7a29df
 
-  const onSubmit = async (data: LoginFormInputs) => {
+  const onSubmit = async (data: LoginForm) => {
     setIsLoading(true);
-    setErrorMessage(null);
 
     try {
       const response = await AuthService.login({
-        studentId: data.studentId,
+        userId: data.email,
         password: data.password,
       });
 
       localStorage.setItem("user", JSON.stringify(response.user));
       localStorage.setItem("token", response.token);
 
+<<<<<<< HEAD
 <<<<<<< HEAD
       toast.success(
         `Logged in successfully as ${
@@ -53,11 +56,12 @@ export function LoginForm() {
 =======
       toast.success("Logged in successfully");
 >>>>>>> 93ce3134bddf883293fa3d8aa7e9d3a9e7e7df6c
+=======
+      toast.success("Logged in successfully");
+>>>>>>> 6e40384813929841d2d789f0407655ec6f7a29df
       window.location.href = "/";
     } catch (error: any) {
-      const msg = error?.message || "Invalid Student ID or Password.";
-      setErrorMessage(msg);
-      toast.error(msg);
+      toast.error(error.message || "Login failed");
     } finally {
       setIsLoading(false);
     }
@@ -67,7 +71,7 @@ export function LoginForm() {
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-background to-accent/10 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-primary text-primary-foreground rounded-2xl mb-4 shadow-md">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-primary text-primary-foreground rounded-2xl mb-4">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               width="24"
@@ -87,11 +91,12 @@ export function LoginForm() {
             </svg>
           </div>
           <h1 className="text-2xl font-bold mb-2">Dormitory Portal</h1>
-          <p className="text-muted-foreground">Sign in with your Student ID and Password</p>
+          <p className="text-muted-foreground">Sign in to access your account</p>
         </div>
 
-        <Card className="shadow-lg border-border">
+        <Card className="shadow-lg">
           <CardContent className="p-8">
+<<<<<<< HEAD
 <<<<<<< HEAD
             <div className="flex gap-3 mb-6">
               <button
@@ -143,15 +148,18 @@ export function LoginForm() {
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
 >>>>>>> 93ce3134bddf883293fa3d8aa7e9d3a9e7e7df6c
+=======
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+>>>>>>> 6e40384813929841d2d789f0407655ec6f7a29df
                 <Input
-                  id="studentId"
+                  id="email"
                   type="text"
-                  {...register("studentId", {
-                    required:
-                      role === "manager"
-                        ? "Email or Staff ID is required"
-                        : "Student ID is required",
+                  {...register("email", {
+                    required: "Email or Student ID is required",
                   })}
+<<<<<<< HEAD
 <<<<<<< HEAD
                   placeholder={
                     role === "manager" ? "admin@dorm.com" : "STU-101"
@@ -159,22 +167,21 @@ export function LoginForm() {
 =======
                   placeholder="student1@test.com"
 >>>>>>> 93ce3134bddf883293fa3d8aa7e9d3a9e7e7df6c
+=======
+                  placeholder="student1@dorm.com or STU-101"
+>>>>>>> 6e40384813929841d2d789f0407655ec6f7a29df
                   disabled={isLoading}
-                  autoComplete="username"
-                  className="h-11"
                 />
-                {errors.studentId && (
+                {errors.email && (
                   <div className="flex items-center gap-1 text-destructive">
                     <AlertCircle className="w-4 h-4" />
-                    <span className="text-sm">{errors.studentId.message}</span>
+                    <span className="text-sm">{errors.email.message}</span>
                   </div>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password" className="font-semibold">
-                  Password
-                </Label>
+                <Label htmlFor="password">Password</Label>
                 <Input
                   id="password"
                   type="password"
@@ -183,8 +190,6 @@ export function LoginForm() {
                   })}
                   placeholder="Enter your password"
                   disabled={isLoading}
-                  autoComplete="current-password"
-                  className="h-11"
                 />
                 {errors.password && (
                   <div className="flex items-center gap-1 text-destructive">
@@ -197,28 +202,30 @@ export function LoginForm() {
               <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full h-11 text-base"
+                className="w-full"
                 size="lg"
               >
+<<<<<<< HEAD
 <<<<<<< HEAD
                 <LogIn className="w-5 h-5 mr-1" />
 =======
                 <LogIn className="w-5 h-5" />
 >>>>>>> 93ce3134bddf883293fa3d8aa7e9d3a9e7e7df6c
+=======
+                <LogIn className="w-5 h-5" />
+>>>>>>> 6e40384813929841d2d789f0407655ec6f7a29df
                 {isLoading ? "Signing in..." : "Sign In"}
               </Button>
             </form>
 
             <div className="mt-6 pt-6 border-t border-border text-center text-sm text-muted-foreground">
-              <p className="font-medium text-foreground mb-2">Valid Demo Credentials:</p>
-              <div className="space-y-1 font-mono text-xs bg-muted/50 p-3 rounded-lg border">
-                <p>
-                  <span className="text-muted-foreground">Student:</span> STU-101 / password123
-                </p>
-                <p>
-                  <span className="text-muted-foreground">Manager:</span> admin@dorm.com / admin123
-                </p>
-              </div>
+              <p className="mb-2">Demo Accounts:</p>
+              <p className="font-mono text-xs">
+                Student: student1@dorm.com or STU-101 / password123
+              </p>
+              <p className="font-mono text-xs">
+                Manager: admin@dorm.com / admin123
+              </p>
             </div>
           </CardContent>
         </Card>

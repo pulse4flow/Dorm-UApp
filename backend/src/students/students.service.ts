@@ -15,9 +15,9 @@ export class StudentsService {
     const where: Prisma.StudentWhereInput = query?.search
       ? {
           OR: [
-            { name: { contains: query.search } },
-            { studentId: { contains: query.search } },
-            { room: { roomNumber: { contains: query.search } } },
+            { name: { contains: query.search, mode: 'insensitive' } },
+            { studentId: { contains: query.search, mode: 'insensitive' } },
+            { room: { roomNumber: { contains: query.search, mode: 'insensitive' } } },
           ],
         }
       : {};

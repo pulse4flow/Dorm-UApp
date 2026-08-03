@@ -6,10 +6,15 @@ WORKDIR /app
 
 COPY package.json pnpm-workspace.yaml pnpm-lock.yaml .npmrc ./
 COPY backend/package.json backend/
+COPY frontend/package.json frontend/
+COPY database/package.json database/
 
 RUN pnpm install --frozen-lockfile
 
 COPY backend/ ./backend/
+COPY database/ ./database/
+
+ENV DATABASE_URL="postgresql://user:password@postgres:5432/pulse_db"
 
 RUN cd backend && pnpm run prisma:generate
 

@@ -1,19 +1,24 @@
 import { BaseService } from "./api-base";
 <<<<<<< HEAD
+<<<<<<< HEAD
 import { UserProfile, UserRole } from "@/types";
 =======
 import { User, UserProfile } from "@/types";
 >>>>>>> 93ce3134bddf883293fa3d8aa7e9d3a9e7e7df6c
+=======
+import { User, UserProfile } from "@/types";
+>>>>>>> 6e40384813929841d2d789f0407655ec6f7a29df
 
 export interface LoginCredentials {
-  studentId?: string;
-  userId?: string;
-  email?: string;
+  userId: string;
   password: string;
+<<<<<<< HEAD
 <<<<<<< HEAD
   role?: UserRole;
 =======
 >>>>>>> 93ce3134bddf883293fa3d8aa7e9d3a9e7e7df6c
+=======
+>>>>>>> 6e40384813929841d2d789f0407655ec6f7a29df
 }
 
 export interface LoginResponse {
@@ -31,9 +36,8 @@ export interface RegisterData {
 
 export const AuthService = {
   login: async (credentials: LoginCredentials) => {
-    const identifier = credentials.studentId || credentials.userId || credentials.email || "";
     return BaseService.post<LoginResponse>("/auth/login", {
-      studentId: identifier,
+      email: credentials.userId,
       password: credentials.password,
     });
   },

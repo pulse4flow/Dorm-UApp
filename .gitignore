@@ -29,7 +29,10 @@ yarn-error.log*
 pnpm-debug.log*
 
 # Prisma
-database/prisma/migrations/
+*.db
+*.db-journal
+*.sqlite
+database/prisma/dev.db*
 
 # Docker
 docker-compose.override.yml

@@ -9,7 +9,7 @@ interface UseAuthReturn {
   isLoading: boolean;
   isAuthenticated: boolean;
   isManager: boolean;
-  login: (studentIdOrEmail: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
   logout: () => void;
   updateUser: (data: Partial<UserProfile>) => void;
 }
@@ -33,15 +33,19 @@ export function useAuth(): UseAuthReturn {
   }, []);
 
   const login = useCallback(
-    async (studentIdOrEmail: string, password: string) => {
+    async (email: string, password: string) => {
       setIsLoading(true);
 
       try {
+<<<<<<< HEAD
 <<<<<<< HEAD
         const response = await AuthService.login({ studentId: studentIdOrEmail, password });
 =======
         const response = await AuthService.login({ userId: email, password });
 >>>>>>> 93ce3134bddf883293fa3d8aa7e9d3a9e7e7df6c
+=======
+        const response = await AuthService.login({ userId: email, password });
+>>>>>>> 6e40384813929841d2d789f0407655ec6f7a29df
 
         localStorage.setItem("user", JSON.stringify(response.user));
         localStorage.setItem("token", response.token);

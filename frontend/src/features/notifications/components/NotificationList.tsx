@@ -4,7 +4,7 @@ import { Notification } from "@/types";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Bell, Check, Trash2, Megaphone, Wrench, Award, Users } from "lucide-react";
+import { Bell, Check, Trash2, Wrench, Award } from "lucide-react";
 
 interface NotificationListProps {
   notifications: Notification[];
@@ -15,18 +15,14 @@ interface NotificationListProps {
 }
 
 const typeIcons: Record<string, typeof Bell> = {
-  announcement: Megaphone,
   repair: Wrench,
   score: Award,
-  activity: Users,
   system: Bell,
 };
 
 const typeColors: Record<string, string> = {
-  announcement: "bg-blue-500/10",
   repair: "bg-yellow-500/10",
   score: "bg-green-500/10",
-  activity: "bg-purple-500/10",
   system: "bg-muted",
 };
 

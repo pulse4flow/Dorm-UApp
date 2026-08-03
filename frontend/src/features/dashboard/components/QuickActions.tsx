@@ -29,6 +29,7 @@ export function QuickActions({ isManager }: QuickActionsProps) {
     },
     {
 <<<<<<< HEAD
+<<<<<<< HEAD
       href: "/notifications",
       label: "Announcements",
       description: "View latest updates",
@@ -39,6 +40,8 @@ export function QuickActions({ isManager }: QuickActionsProps) {
     {
 =======
 >>>>>>> 93ce3134bddf883293fa3d8aa7e9d3a9e7e7df6c
+=======
+>>>>>>> 6e40384813929841d2d789f0407655ec6f7a29df
       href: "/score",
       label: "Dorm Score",
       description: "View your score history",
@@ -47,6 +50,7 @@ export function QuickActions({ isManager }: QuickActionsProps) {
       iconColor: "text-green-600 dark:text-green-400",
     },
     {
+<<<<<<< HEAD
 <<<<<<< HEAD
       href: isManager ? "/students" : "/",
       label: "Students",
@@ -58,6 +62,8 @@ export function QuickActions({ isManager }: QuickActionsProps) {
     {
 =======
 >>>>>>> 93ce3134bddf883293fa3d8aa7e9d3a9e7e7df6c
+=======
+>>>>>>> 6e40384813929841d2d789f0407655ec6f7a29df
       href: "/notifications",
       label: "Notifications",
       description: "Check your alerts",
