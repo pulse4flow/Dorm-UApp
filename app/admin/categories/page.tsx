@@ -1,0 +1,2 @@
+import { redirect } from "next/navigation"; import { AdminNav } from "@/components/admin-nav"; import { EntityManager } from "@/components/entity-manager"; import { requireAdmin } from "@/lib/auth";
+export default async function CategoriesPage() { try { await requireAdmin(); } catch { redirect("/admin/login"); } return <><AdminNav /><main className="admin-content"><h1>Categories</h1><EntityManager kind="categories" /></main></>; }

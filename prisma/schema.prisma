@@ -1,0 +1,75 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Announcement {
+  id          String             @id @default(cuid())
+  title       String
+  summary     String
+  content     String
+  status      String             @default("DRAFT")
+  priority    String             @default("NORMAL")
+  publishAt   DateTime?
+  expiresAt   DateTime?
+  eventAt     DateTime?
+  imageUrl    String?
+  categoryId  String?
+  category    Category?          @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  tags        AnnouncementTag[]
+  attachments Attachment[]
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+
+  @@index([status, publishAt, expiresAt])
+  @@index([categoryId])
+}
+
+model Category {
+  id            String         @id @default(cuid())
+  name          String         @unique
+  color         String         @default("#2563eb")
+  announcements Announcement[]
+  createdAt     DateTime       @default(now())
+}
+
+model Tag {
+  id            String            @id @default(cuid())
+  name          String            @unique
+  announcements AnnouncementTag[]
+  createdAt     DateTime          @default(now())
+}
+
+model AnnouncementTag {
+  announcementId String
+  tagId          String
+  announcement   Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  tag            Tag          @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([announcementId, tagId])
+}
+
+model Attachment {
+  id             String       @id @default(cuid())
+  announcementId String?
+  fileName       String
+  mimeType       String
+  size           Int
+  url            String
+  createdAt      DateTime     @default(now())
+  announcement   Announcement? @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+
+  @@index([announcementId])
+}
