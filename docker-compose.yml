@@ -1,20 +1,4 @@
 services:
-  postgres:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: pulse_db
-    ports:
-      - '5432:5432'
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U user']
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
   backend:
     build:
       context: .
@@ -24,14 +8,17 @@ services:
     environment:
       NODE_ENV: development
       PORT: 3001
-      DATABASE_URL: postgresql://user:password@postgres:5432/pulse_db
+      DATABASE_URL: file:./dev.db
+      JWT_SECRET: dorm-demo-secret-change-me
       FRONTEND_URL: http://localhost:3000
-    depends_on:
-      postgres:
-        condition: service_healthy
     volumes:
       - ./backend/src:/app/backend/src
-    command: sh -c "pnpm --filter backend prisma:migrate:prod && pnpm --filter backend prisma:seed && pnpm --filter backend dev"
+      # Persist the local SQLite demo database on the host so resets are reproducible.
+      - ./database/prisma:/app/database/prisma
+    # Applies migrations only (no reseed on startup). Run `pnpm demo:setup` on the
+    # host first, or seed once inside the container with:
+    #   docker compose run --rm backend sh -c "cd /app/database && pnpm exec ts-node prisma/seed.ts"
+    command: sh -c "pnpm --filter database prisma:migrate:prod && pnpm --filter backend dev"
 
   frontend:
     build:
@@ -47,6 +34,3 @@ services:
     volumes:
       - ./frontend/src:/app/frontend/src
     command: pnpm --filter frontend dev
-
-volumes:
-  postgres_data:

@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { AppController } from './app.controller';
+import { AppController, HealthController } from './app.controller';
 import { AppService } from './app.service';
 import { EventsGateway } from './events.gateway';
 import { PrismaModule } from '../prisma/prisma.module';
@@ -24,7 +24,7 @@ import { NotificationsModule } from '../notifications/notifications.module';
     ScoresModule,
     NotificationsModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, HealthController],
   providers: [AppService, EventsGateway],
 })
 export class AppModule {}

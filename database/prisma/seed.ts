@@ -133,6 +133,10 @@ async function main() {
 
   // 4. Create sample repair request and score history for student101
   if (sampleStudent) {
+    // Keep the seed deterministic: remove previously seeded samples before re-inserting
+    await prisma.repair.deleteMany({ where: { studentId: sampleStudent.id } });
+    await prisma.scoreHistory.deleteMany({ where: { studentId: sampleStudent.id } });
+
     await prisma.repair.createMany({
       data: [
         {

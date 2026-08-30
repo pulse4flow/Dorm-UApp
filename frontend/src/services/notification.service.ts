@@ -11,11 +11,11 @@ export const NotificationService = {
   },
 
   markAsRead: async (id: string) => {
-    return BaseService.patch<Notification>(`/notifications/${id}/read`, {});
+    return BaseService.put<Notification>(`/notifications/${id}/read`, {});
   },
 
   markAllAsRead: async () => {
-    return BaseService.patch("/notifications/read-all", {});
+    return BaseService.put("/notifications/read-all", {});
   },
 
   delete: async (id: string) => {

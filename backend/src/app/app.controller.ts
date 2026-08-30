@@ -10,3 +10,13 @@ export class AppController {
     return this.appService.getHealth();
   }
 }
+
+@Controller()
+export class HealthController {
+  constructor(private readonly appService: AppService) {}
+
+  @Get('health')
+  getHealth() {
+    return this.appService.getHealth();
+  }
+}

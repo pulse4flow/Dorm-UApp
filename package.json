@@ -11,6 +11,9 @@
     "lint": "pnpm --parallel -r run lint",
     "lint:backend": "pnpm --filter backend lint",
     "lint:frontend": "pnpm --filter frontend lint",
+    "demo:setup": "node scripts/demo-setup.mjs",
+    "demo:reset": "node scripts/demo-reset.mjs",
+    "setup": "pnpm demo:setup",
     "db:generate": "pnpm --filter database prisma:generate",
     "db:migrate": "pnpm --filter database prisma:migrate",
     "db:deploy": "pnpm --filter database prisma:migrate:prod",
@@ -20,10 +23,9 @@
     "start": "pnpm --parallel -r run start",
     "start:backend": "pnpm --filter backend start:prod",
     "start:frontend": "pnpm --filter frontend start",
-    "docker:up": "docker-compose up -d",
-    "docker:down": "docker-compose down",
-    "docker:db": "docker-compose up -d postgres",
-    "setup": "pnpm install && pnpm docker:db && pnpm db:migrate && pnpm db:seed"
+    "test": "pnpm --filter backend test:e2e",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down"
   },
   "engines": {
     "node": ">=20"

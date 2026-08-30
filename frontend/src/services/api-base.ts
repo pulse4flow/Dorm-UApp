@@ -37,7 +37,7 @@ export const BaseService = {
   },
 
   patch: async <T>(endpoint: string, body: unknown) => {
-    return api.put<T>(endpoint, body);
+    return api.patch<T>(endpoint, body);
   },
 
   delete: async <T>(endpoint: string) => {
