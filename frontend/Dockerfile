@@ -1,6 +1,6 @@
 FROM node:20-alpine AS builder
 
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@11.11.0 --activate
 
 WORKDIR /app
 
@@ -15,7 +15,7 @@ RUN cd frontend && pnpm run build
 
 FROM node:20-alpine
 
-RUN corepack enable && corepack prepare pnpm@latest --activate
+RUN corepack enable && corepack prepare pnpm@11.11.0 --activate
 
 WORKDIR /app
 

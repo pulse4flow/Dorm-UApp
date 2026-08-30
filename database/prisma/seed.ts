@@ -53,8 +53,8 @@ async function main() {
     },
   ];
 
-  const keptUsernames = users.map((u) => u.username);
-  await prisma.user.deleteMany({ where: { username: { notIn: keptUsernames } } });
+  // Demo accounts are upserted additively. demo:setup never deletes existing
+  // (user-created) accounts — `demo:reset` is the destructive command.
 
   // 1. Create Rooms
   const buildings = ['A', 'B', 'C', 'D'];
@@ -133,9 +133,21 @@ async function main() {
 
   // 4. Create sample repair request and score history for student101
   if (sampleStudent) {
-    // Keep the seed deterministic: remove previously seeded samples before re-inserting
-    await prisma.repair.deleteMany({ where: { studentId: sampleStudent.id } });
-    await prisma.scoreHistory.deleteMany({ where: { studentId: sampleStudent.id } });
+    // Keep the seed deterministic WITHOUT touching user-created rows: only remove
+    // the exact sample rows the seed itself created on a previous run (matched by
+    // description/reason), then recreate them. User-submitted repairs and
+    // score-history entries for student101 are left intact.
+    const sampleRepairDescriptions = [
+      'Bathroom sink leaking water',
+      'Bedside outlet not functioning',
+    ];
+
+    await prisma.repair.deleteMany({
+      where: { studentId: sampleStudent.id, description: { in: sampleRepairDescriptions } },
+    });
+    await prisma.scoreHistory.deleteMany({
+      where: { studentId: sampleStudent.id, reason: 'Initial score evaluation' },
+    });
 
     await prisma.repair.createMany({
       data: [

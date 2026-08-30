@@ -5,12 +5,8 @@ services:
       dockerfile: backend/Dockerfile
     ports:
       - '3001:3001'
-    environment:
-      NODE_ENV: development
-      PORT: 3001
-      DATABASE_URL: file:./dev.db
-      JWT_SECRET: dorm-demo-secret-change-me
-      FRONTEND_URL: http://localhost:3000
+    env_file:
+      - ./backend/.env
     volumes:
       - ./backend/src:/app/backend/src
       # Persist the local SQLite demo database on the host so resets are reproducible.

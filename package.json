@@ -1,8 +1,9 @@
 {
   "name": "dorm-uapp",
   "private": true,
+  "packageManager": "pnpm@11.11.0",
   "scripts": {
-    "dev": "pnpm --parallel -r run dev",
+    "dev": "node scripts/dev.mjs",
     "dev:backend": "pnpm --filter backend dev",
     "dev:frontend": "pnpm --filter frontend dev",
     "build": "pnpm --parallel -r run build",

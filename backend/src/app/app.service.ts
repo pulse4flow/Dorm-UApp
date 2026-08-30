@@ -7,10 +7,21 @@ export class AppService {
 
   async getHealth() {
     try {
-      await this.prisma.$queryRaw`SELECT 1`;
+      // Verify the schema is actually present, not just that the SQLite file opened.
+      // An empty/missing dev.db still opens fine, so this guards against a backend
+      // that has been started without `pnpm demo:setup` ever having run.
+      const table = await this.prisma.$queryRaw<Array<{ name: string }>>`
+        SELECT name FROM sqlite_master WHERE type='table' AND name='User'`;
+      if (!table.length) {
+        throw new Error('User table missing — run: pnpm demo:setup (demo:reset for a clean slate)');
+      }
       return { status: 'ok', database: 'connected' };
-    } catch {
-      throw new ServiceUnavailableException({ status: 'error', database: 'disconnected' });
+    } catch (error) {
+      const detail =
+        error instanceof Error && error.message.includes('demo:setup')
+          ? error.message
+          : 'database is not initialized — run: pnpm demo:setup';
+      throw new ServiceUnavailableException({ status: 'error', database: 'disconnected', message: detail });
     }
   }
 }

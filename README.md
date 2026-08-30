@@ -20,6 +20,9 @@ node --version  # v20+
 pnpm --version  # 9+
 ```
 
+pnpm is pinned in the repo root (`packageManager` in `package.json`); installs
+use the exact same version in CI/Docker via `corepack prepare pnpm@11.11.0`.
+
 ---
 
 ## Fresh setup (demo)
@@ -31,6 +34,10 @@ pnpm dev          # start backend (3001) and frontend (3000) together
 ```
 
 Then open **http://localhost:3000**.
+
+`pnpm dev` is race-safe: it boots the backend first and only starts the Next.js
+dev server once `http://localhost:3001/health` reports the database is ready. The
+frontend proxy never 500s against a half-started backend.
 
 `pnpm demo:setup` is safe to re-run. It:
 
@@ -70,7 +77,7 @@ This deletes the demo SQLite database, recreates the schema, and reseeds — res
 
 | Command              | Description                                            |
 | -------------------- | ------------------------------------------------------ |
-| `pnpm dev`           | Run backend + frontend in watch mode                   |
+| `pnpm dev`           | Start backend, wait until `:3001/health` is ready, then start frontend |
 | `pnpm dev:backend`   | Backend only                                           |
 | `pnpm dev:frontend`  | Frontend only                                          |
 | `pnpm demo:setup`    | Prepare + seed the demo database                       |
@@ -175,7 +182,8 @@ Covers: demo login success (student + manager), wrong password → 401, protecte
 
 **Login fails**
 - Make sure `pnpm demo:setup` completed (or run `pnpm demo:reset`). The demo accounts only exist after seeding.
-- Confirm the backend is up: `curl http://localhost:3001/health` should return `{"status":"ok","database":"connected"}`.
+- Confirm the backend is up: `curl http://localhost:3001/health` should return `{"status":"ok","database":"connected"}`. A `database:"disconnected"` response (HTTP 503) means the SQLite schema is missing — run `pnpm demo:setup`.
+- If the UI shows `API Error: Internal Server Error` on a valid account while `pnpm dev` is still booting, the backend just wasn't ready yet — `pnpm dev` now waits for `/health` first, so retry rather than restarting.
 
 **Database reset**
 - `pnpm demo:reset` fully rebuilds the SQLite database. It is safe to run anytime.
