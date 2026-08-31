@@ -9,7 +9,9 @@
     "lint": "next lint",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:seed": "tsx prisma/seed.ts"
+    "prisma:seed": "tsx prisma/seed.ts",
+    "demo:setup": "prisma migrate deploy && npm run prisma:seed",
+    "demo:reset": "prisma migrate reset --force --skip-seed && npm run prisma:seed"
   },
   "dependencies": {
     "@prisma/client": "^6.1.0",

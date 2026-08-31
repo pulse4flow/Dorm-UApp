@@ -30,3 +30,18 @@ export const credentialsInput = z.object({
   email: z.string().trim().email().max(254),
   password: z.string().min(12).max(128),
 });
+
+const repairCategories = ["PLUMBING", "ELECTRICAL", "AIRCON", "NETWORK", "FURNITURE", "OTHER"] as const;
+const repairStatuses = ["PENDING", "IN_PROGRESS", "RESOLVED"] as const;
+
+export const repairInput = z.object({
+  room: z.string().trim().min(1).max(20),
+  requesterName: z.string().trim().max(80).optional().transform((value) => (value ? value : null)),
+  title: z.string().trim().min(3).max(160),
+  description: z.string().trim().min(3).max(4000),
+  category: z.enum(repairCategories).default("OTHER"),
+});
+
+export const repairStatusInput = z.object({
+  status: z.enum(repairStatuses),
+});
