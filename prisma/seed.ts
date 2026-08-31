@@ -1,5 +1,15 @@
+import { existsSync } from "fs";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcryptjs";
+
+const envFile = process.env.DOTENV_CONFIG_PATH ?? ".env";
+if (existsSync(envFile)) {
+  try {
+    process.loadEnvFile(envFile);
+  } catch {
+    // malformed .env is not fatal; PrismaClient will surface the real error later
+  }
+}
 
 const prisma = new PrismaClient();
 

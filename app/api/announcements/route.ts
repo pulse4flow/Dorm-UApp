@@ -21,15 +21,15 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     await requireAdmin();
-    const input = announcementInput.parse(await request.json());
+    const { tagIds, attachmentIds, ...data } = announcementInput.parse(await request.json());
     const announcement = await prisma.announcement.create({
       data: {
-        ...input,
-        publishAt: input.publishAt ? new Date(input.publishAt) : null,
-        expiresAt: input.expiresAt ? new Date(input.expiresAt) : null,
-        eventAt: input.eventAt ? new Date(input.eventAt) : null,
-        tags: { create: input.tagIds.map((tagId) => ({ tagId })) },
-        attachments: { connect: input.attachmentIds.map((id) => ({ id })) },
+        ...data,
+        publishAt: data.publishAt ? new Date(data.publishAt) : null,
+        expiresAt: data.expiresAt ? new Date(data.expiresAt) : null,
+        eventAt: data.eventAt ? new Date(data.eventAt) : null,
+        tags: { create: tagIds.map((tagId) => ({ tagId })) },
+        attachments: { connect: attachmentIds.map((id) => ({ id })) },
       },
       include: announcementInclude,
     });

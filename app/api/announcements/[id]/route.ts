@@ -23,16 +23,16 @@ export async function GET(request: Request, { params }: Context) {
 export async function PATCH(request: Request, { params }: Context) {
   try {
     await requireAdmin();
-    const input = announcementInput.parse(await request.json());
+    const { tagIds, attachmentIds, ...data } = announcementInput.parse(await request.json());
     const record = await prisma.announcement.update({
       where: { id: (await params).id },
       data: {
-        ...input,
-        publishAt: input.publishAt ? new Date(input.publishAt) : null,
-        expiresAt: input.expiresAt ? new Date(input.expiresAt) : null,
-        eventAt: input.eventAt ? new Date(input.eventAt) : null,
-        tags: { deleteMany: {}, create: input.tagIds.map((tagId) => ({ tagId })) },
-        attachments: { set: input.attachmentIds.map((id) => ({ id })) },
+        ...data,
+        publishAt: data.publishAt ? new Date(data.publishAt) : null,
+        expiresAt: data.expiresAt ? new Date(data.expiresAt) : null,
+        eventAt: data.eventAt ? new Date(data.eventAt) : null,
+        tags: { deleteMany: {}, create: tagIds.map((tagId) => ({ tagId })) },
+        attachments: { set: attachmentIds.map((id) => ({ id })) },
       },
       include: announcementInclude,
     });

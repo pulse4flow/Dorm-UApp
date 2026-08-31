@@ -8,7 +8,11 @@ import { prisma } from "@/lib/prisma";
 export const dynamic = "force-dynamic";
 
 export default async function MaintenancePage() {
-  const recent = await prisma.repairRequest.findMany({ orderBy: { createdAt: "desc" }, take: 8 });
+  const recent = await prisma.repairRequest.findMany({
+    select: { id: true, title: true, category: true, status: true, createdAt: true },
+    orderBy: { createdAt: "desc" },
+    take: 8,
+  });
   return (
     <>
       <SiteHeader />
@@ -34,7 +38,7 @@ export default async function MaintenancePage() {
                     <div className="repair-row" key={request.id}>
                       <div className="repair-meta">
                         <strong>{request.title}</strong>
-                        <span>{repairCategoryLabel[request.category as (typeof REPAIR_CATEGORIES)[number]] ?? request.category} · Room {request.room}{request.requesterName ? ` · ${request.requesterName}` : ""}</span>
+                        <span>{repairCategoryLabel[request.category as (typeof REPAIR_CATEGORIES)[number]] ?? request.category} · submitted {new Date(request.createdAt).toLocaleDateString()}</span>
                       </div>
                       <RepairStatus status={request.status} />
                     </div>
