@@ -28,6 +28,10 @@ export default async function MaintenancePage() {
               <h2>Submit a request</h2>
               <p className="widget-subtext">Tell us what&apos;s broken and our team will review it and update the status here.</p>
               <MaintenanceForm />
+              <div className="maintenance-privacy">
+                <span>🔒</span>
+                <span>Your personal details stay private — only the maintenance team sees them. Public listings show only the title, category and status.</span>
+              </div>
             </section>
 
             <section>

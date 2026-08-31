@@ -6,6 +6,7 @@ import { Countdown } from "@/components/countdown";
 import { DashboardSearch } from "@/components/dashboard/search-bar";
 import { MyTasksWidget } from "@/components/dashboard/my-tasks-widget";
 import { UtilityGrid } from "@/components/dashboard/utility-grid";
+import { DashboardSummary } from "@/components/dashboard/summary-strip";
 import { getPublicAnnouncements } from "@/lib/announcements";
 
 export const dynamic = "force-dynamic";
@@ -26,8 +27,8 @@ export default async function Home() {
       <main>
         <section className="hero dash-hero">
           <p className="eyebrow">Student Utility Dashboard</p>
-          <h1>Everything for dorm life, in one place.</h1>
-          <p>Announcements, maintenance, dorm info and your own to-do list — no account needed.</p>
+          <h1>Good evening — everything you need for dorm life.</h1>
+          <p>Announcements, tasks, maintenance requests and dorm info — no account needed.</p>
           <DashboardSearch />
         </section>
         <div className="dashboard">
